@@ -1,0 +1,18 @@
+# 敏感文件
+.env
+*.key
+config.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 报告输出
+product1-log-analyzer/reports/
+product3-inspection-tool/reports/
+
+# OS文件
+.DS_Store
+Thumbs.db
