@@ -1,0 +1,20 @@
+2026-08-01 09:15:23 INFO [system] Service started successfully
+2026-08-01 09:16:01 INFO [network] Network interface eth0 is up
+2026-08-01 09:18:45 WARNING [disk] Disk usage on /dev/sda1 reached 85%
+2026-08-01 09:20:12 ERROR [network] Connection refused to host 10.0.0.1:8080
+2026-08-01 09:21:33 ERROR [permission] Access denied for user admin on /etc/config
+2026-08-01 09:22:01 INFO [system] Health check passed
+2026-08-01 09:25:44 ERROR [service] Service nginx crashed unexpectedly
+2026-08-01 09:26:10 WARNING [memory] Memory usage reached 78%
+2026-08-01 09:28:55 ERROR [network] DNS resolution failed for api.example.com
+2026-08-01 09:30:00 ERROR [permission] Permission denied: cannot write to /var/log/app.log
+2026-08-01 09:31:22 INFO [system] Backup completed successfully
+2026-08-01 09:33:45 ERROR [service] MySQL connection timeout after 30s
+2026-08-01 09:35:10 WARNING [disk] Disk usage on /dev/sdb1 reached 82%
+2026-08-01 09:37:28 ERROR [network] SSH connection failed to host 10.0.0.2
+2026-08-01 09:38:50 INFO [network] Network interface eth1 is up
+2026-08-01 09:40:15 ERROR [service] Redis service is not responding
+2026-08-01 09:42:33 WARNING [cpu] CPU usage reached 88%
+2026-08-01 09:44:00 ERROR [permission] Authentication failed for user operator
+2026-08-01 09:45:22 INFO [network] Network interface eth1 is up
+2026-08-01 09:47:10 ERROR [network] Connection timeout to host 10.0.0.3:443
