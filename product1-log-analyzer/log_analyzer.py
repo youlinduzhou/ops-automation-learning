@@ -1,21 +1,25 @@
-# 运维日志分析脚本 Day1 读取日志文件并打印
+# 运维日志分析脚本 Day2 提取日志级别
 
+import re  # 引入正则表达式模块
 
-def read_log_file(file_path):
-    """读取日志文件，逐行打印内容"""
+def extract_log_levels(file_path):
+    """读取日志文件，提取每行的日志级别"""
     try:
-        # with 语句打开文件，离开这个缩进块会自动关闭文件
         with open(file_path, 'r', encoding='utf-8') as f:
-            # 逐行读取并打印；end='' 避免 print 自带换行导致多出空行
-            for line in f:
-                print(line, end='')
+            for line_number, line in enumerate(f, start=1):  # enumerate给每行编号，从1开始
+                # 用正则在每行中搜索 ERROR 或 WARNING 或 INFO 或 DEBUG
+                match = re.search(r'ERROR|WARNING|INFO|DEBUG', line)
+                if match:
+                    # 匹配到了，提取匹配到的文字
+                    level = match.group()
+                else:
+                    # 没匹配到，标记为 UNKNOWN
+                    level = 'UNKNOWN'
+                print(f"{line_number}: {level}")
     except FileNotFoundError:
-        # 文件不存在时打印友好提示，而不是让程序报错崩溃
         print(f"错误：文件 '{file_path}' 不存在，请检查文件路径！")
 
-# 程序入口：只有直接运行本文件时才会执行下面这行
 if __name__ == '__main__':
-    read_log_file('sample.log')
-
+    extract_log_levels('sample.log')
 
 
