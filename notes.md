@@ -280,6 +280,103 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 
 ***
 
+## 三-B、Day 4 笔记：按问题类型归类（08-09）
+
+### 脚本一句话
+
+在Day 3统计级别的基础上，把ERROR行按关键词归为网络错误/权限错误/服务异常/其他错误，统计每类个数。
+
+### Day 4 新增5个知识点（逐词注释）
+
+#### ① `CATEGORIES = {...}` — 分类规则字典
+
+```python
+CATEGORIES = {
+    '网络错误': ['connection', 'DNS', 'SSH', 'network'],
+    '权限错误': ['denied', 'permission', 'Authentication'],
+    '服务异常': ['service', 'nginx', 'MySQL', 'Redis'],
+}
+```
+
+- `CATEGORIES` = 变量名，全大写表示"固定的规则常量"
+- `'网络错误': [...]` = 字典的**键**是类别名，**值**是该类别的关键词列表
+- 为什么要用字典？→ 以后加"硬件错误"只需加一行 `'硬件错误': ['disk', 'memory']`，不用改其他代码
+- **字典的键顺序 = 规则检查顺序**（这决定了冲突行归哪类）
+
+#### ② `for category, keywords in CATEGORIES.items():` — 拆键值对逐类问
+
+- `.items()` = 把字典拆成(键,值)对，从上到下逐一取出
+- 第一轮：`category='网络错误'`，`keywords=['connection','DNS','SSH','network']`
+- 第二轮：`category='权限错误'`，`keywords=['denied','permission','Authentication']`
+- **与匹配成功/失败无关**——匹配成功与否由内层 if 决定，这里只是"问哪个类别"
+- 顺序是**我们自己定义的**，不是Python强制的——调换顺序，冲突行的归类就会变
+
+#### ③ `keyword.lower() in line.lower()` — 包含判断+忽略大小写
+
+- `in` = 子串判断："左边字符串是否出现在右边字符串里"，返回True/False
+- 例：`'connection' in 'mysql connection timeout'` → True
+- `.lower()` = 把字符串所有大写转成小写，让大小写不影响匹配
+- **两边都要转**：如果只给line转，keyword里的大写（如`Authentication`）就匹配不上了
+
+#### ④ `return category`（写在两层for里面）— 只归第一个匹配
+
+- 命中的那一刻 `return` 立即结束整个函数，不再看后面的类别
+- 这就是实验手册要求的"每个ERROR行只归入第一个匹配的类别"
+- 没命中任何关键词 → 走完两个for → `return '其他错误'`
+
+#### ⑤ `level = match.group().upper()` — 统一大写（边界测试的修复）
+
+- 加IGNORECASE后 `match.group()` 返回**原文大小写**，小写 `error` 会被 `if level == 'ERROR':` 漏掉
+- `.upper()` = 转大写，`'error'.upper()` → `'ERROR'`，归类分支和统计键都统一
+
+### 记忆骨架（Day 4 在 Day 3 基础上新增的部分）
+
+````
+规则    → CATEGORIES = {'网络错误': [...], '权限错误': [...], '服务异常': [...]}   ← 新
+分类    → def classify_error(line):                                                ← 新
+          →     for category, keywords in CATEGORIES.items():                       ← 新
+          →         for keyword in keywords:                                        ← 新
+          →             if keyword.lower() in line.lower():                         ← 新
+          →                 return category   ← 只归第一个匹配，立即结束             ← 新
+          →     return '其他错误'
+...（Day 3一样）...
+归类    → if level == 'ERROR':               ← 新
+          →     category = classify_error(line)                                    ← 新
+          →     error_counter[category] = error_counter.get(category, 0) + 1       ← 新
+输出    → for category, count in error_counter.items():                             ← 新
+          →     print(f"{category}: {count}个")
+````
+
+### 关键认知纠正
+
+- **代码是无脑关键词匹配器**：它不理解语义（"MySQL连接超时"的真实原因可能是网络/权限），只按规则顺序机械匹配
+- **L12冲突行** `MySQL connection timeout`：含connection（网络）和MySQL（服务），按"网络→权限→服务"顺序归**网络错误**；规则顺序调换归类就变
+- **边界测试抓到的bug**：小写 `error` 被 re.IGNORECASE 识别为级别，但 `if level == 'ERROR':` 大小写敏感漏掉归类 → 修法：**改代码** `level = match.group().upper()`，不是改测试数据
+- **`.upper()` 顺带合并统计键**：`error` 和 `ERROR` 不再分两个键
+
+### 分类统计验证
+
+````
+网络错误: 5个（第4,9,12,14,20行）
+权限错误: 3个（第5,10,18行）
+服务异常: 2个（第7,16行）
+合计：5+3+2 = 10条ERROR ✅
+````
+
+### 边界测试（3用例全过）
+
+- 文件不存在 → 友好提示 + 返回空字典
+- 空文件 → 输出空统计、不崩溃
+- 异常格式（小写级别/无级别行）→ UNKNOWN正确 + 发现并修复小写级别漏归类bug
+
+### Git 提交
+
+````
+c280a5c Day 3: 实现日志级别统计（字典计数）
+````
+
+***
+
 ## 四、成品2 Day 7 复盘 + 技术总结（08-09补）
 
 ### 复盘问题
