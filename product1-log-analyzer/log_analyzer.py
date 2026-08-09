@@ -8,7 +8,7 @@ def count_log_levels(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             for line_number, line in enumerate(f, start=1):
-                match = re.search(r'ERROR|WARNING|INFO|DEBUG', line)
+                match = re.search(r'ERROR|WARNING|INFO|DEBUG', line, re.IGNORECASE)
                 if match:
                     level = match.group()
                 else:

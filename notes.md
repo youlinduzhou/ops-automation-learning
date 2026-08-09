@@ -173,6 +173,17 @@ e277fd2 Day 0: 项目初始化（README/.gitignore/目录结构）
 - 只需在正则模式加 `|DEBUG`：`r'ERROR|WARNING|INFO|DEBUG'`
 - 正则"或"的威力：加一个 `|新词` 就扩展一个识别能力
 
+### 补课：re.IGNORECASE 忽略大小写（08-09补）
+
+- **为什么需要**：实验手册Day 2操作步骤第3条要求"忽略大小写（防止日志中有时是小写error）"
+- **代码写法**：`re.search(r'ERROR|WARNING|INFO|DEBUG', line, re.IGNORECASE)`
+- **re.IGNORECASE** = 正则标志位，让匹配忽略大小写
+  - 加了之后：`error`、`Error`、`ERROR` 都能匹配到
+  - 不加：只能匹配大写 `ERROR`，遇到小写 `error` 会被标记为UNKNOWN
+- **位置**：作为 `re.search()` 的第三个参数传入
+- **注意**：加了IGNORECASE后，`match.group()` 返回的是日志中**原始大小写**（如`error`），不会自动转大写
+  - 如果需要统一大写输出，需加 `level = match.group().upper()`
+
 ### Git 提交
 
 ````
@@ -181,7 +192,7 @@ e277fd2 Day 0: 项目初始化（README/.gitignore/目录结构）
 
 ***
 
-## 三、Day 3 笔记：字典统计日志级别（08-08）
+## 三、Day 3 笔记：字典统计日志级别（08-09）
 
 ### 脚本一句话
 
@@ -200,7 +211,7 @@ e277fd2 Day 0: 项目初始化（README/.gitignore/目录结构）
 - `counter[level]` = 字典的键访问/赋值
 
   - 读取：`counter['ERROR']` → 取出ERROR的次数
-  - 赋值：`counter['ERROR'] = 9` → 把ERROR的次数设为9
+  - 赋值：`counter['ERROR'] = 10` → 把ERROR的次数设为10
 
 - `counter.get(level, 0)` = 安全取值
 
@@ -258,7 +269,7 @@ ERROR: 10次（第4,5,7,9,10,12,14,16,18,20行）
 ### Git 提交
 
 ````
-（待提交）Day 3: 实现日志级别统计（字典计数）
+c280a5c Day 3: 实现日志级别统计（字典计数）
 8f7145f Day 2：实现日志级别的提取（正则表达式+DEBUG扩展）
 91f1a6b Day 1: 实现日志文件读取和打印功能
 ````
