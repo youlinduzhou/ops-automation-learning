@@ -418,7 +418,95 @@ CATEGORIES = {
 
 ***
 
-## 五、安全红线
+## 五、Day 5 笔记：生成文本报告（08-18）
+
+### 脚本一句话
+
+在Day 4统计级别和错误分类的基础上，把结果写入格式化的文本报告文件 `report_YYYYMMDD.txt`。
+
+### Day 5 新增2个知识点（逐词注释）
+
+#### ① `from datetime import datetime` + `datetime.now()` — 获取当前时间
+
+- `from datetime import datetime` = 从datetime模块拿出datetime工具（模块和工具同名）
+- `datetime.now()` = 抓取此刻系统时间，含年月日时分秒和微秒
+- `now.strftime('%Y-%m-%d %H:%M:%S')` = 把时间格式化成字符串
+  - `strftime` = string format time（字符串格式化时间）
+  - `%Y`=4位年 `%m`=2位月 `%d`=2位日 `%H`=时 `%M`=分 `%S`=秒
+- `now.strftime('%Y%m%d')` = 生成 `20260818`，用于拼报告文件名
+
+#### ② `open('w')` + `f.write()` — 写文件
+
+- `open(文件名, 'w', encoding='utf-8')` = 以写入模式打开文件
+  - `'w'` = write 模式（和之前用的 `'r'` read 对称）
+  - 文件不存在会**自动创建**，已存在会**覆盖**
+- `f.write('内容')` = 把字符串写进文件
+  - **不会自动换行**，必须手动加 `\n`
+- `f"..."` = f-string格式化，`{变量名}` 会被替换成变量的值
+
+### 记忆骨架（Day 5 在 Day 4 基础上新增的部分）
+
+````
+获取时间 → now = datetime.now()                                    ← 新
+拼文件名 → report_{now.strftime('%Y%m%d')}.txt                    ← 新
+写文件   → with open(report_filename, 'w', encoding='utf-8') as f: ← 新
+标题     →     f.write(f"=====运维日志分析报告=====\n")
+分析时间 →     f.write(f"分析时间：{now.strftime('%Y-%m-%d %H:%M:%S')}\n")
+文件名   →     f.write(f"日志文件：{file_path}\n")
+总行数   →     f.write(f"总行数：{total_lines}\n")
+级别统计 →     for level, count in counter.items():                ← 复用Day 3
+                f.write(f"{level}: {count}次\n")
+错误分类 →     for category, count in error_counter.items():       ← 复用Day 4
+                f.write(f"{category}: {count}个\n")
+````
+
+### 关键认知
+
+- **总行数** = `line_number`（enumerate产生的行号，循环结束后就是最后一行的行号）
+- **`now` 必须在函数内部获取**，不能放在模块顶部——否则每次运行报告时间都是导入时的时间，不是运行时的时间
+- **报告文件名动态生成**：`report_{now.strftime('%Y%m%d')}.txt`，每天运行自动用当天日期
+- **`write` 不加 `\n` 就全挤成一行**——这是和 `print` 最大的区别（print自动换行，write不换行）
+
+### 踩坑记录
+
+1. **模块级测试代码没清理**：最初在文件顶部写了 `print(now)` 等3行测试代码，每次运行都打印到终端 → 删除，`now` 移到函数内部
+2. **文件名写死**：最初硬编码 `report_20260818.txt`，明天运行文件名还是今天 → 改用 `now.strftime` 动态生成
+3. **边界测试操作错误**：把 `python .\bad.log` 当成运行脚本（应该运行 `python .\log_analyzer.py`）→ bad.log 是数据文件不是脚本
+
+### 创：加调试输出
+
+- 在 `classify_error` 里加了 `print(f"匹配到关键词：{keyword}")`，能看到每个ERROR命中的是哪个关键词
+
+### 边界测试（3用例全过）
+
+- 文件不存在 → 友好提示，不崩溃，不生成报告 ✅
+- 空文件 → 输出空统计，不崩溃 ✅
+- 异常格式（bad.log 3行乱内容）→ 全标UNKNOWN，不崩溃 ✅
+
+### Day 5 收尾四问
+
+1. **今天产出了什么？** → 报告生成功能：把级别统计和错误分类写入 `report_YYYYMMDD.txt`
+2. **跑通了吗？** → 跑通了，报告内容全对（分析时间/文件名/总行数/级别统计/错误分类）
+3. **卡在哪了？** → ①`now`变量放错位置（模块级→函数内）②文件名写死→动态生成 ③边界测试把数据文件当脚本运行
+4. **到布卢姆第几层了？** → 应用层（独立写出并跑通）✅；"创"环节加了调试输出，接近评价层
+
+### 一句话说清今天最重要的概念
+
+> `open('w')` 写文件和 `open('r')` 读文件是对称的，`write` 不自动换行要加 `\n`，`datetime.now().strftime()` 把时间格式化成字符串用于报告时间戳和文件名。
+
+### Git 提交
+
+````
+ccac122 Day 5: 实现文本报告生成功能
+632473c Day 4: 实现ERROR按问题类型归类
+c280a5c Day 3: 实现日志级别统计（字典计数）
+8f7145f Day 2：实现日志级别的提取（正则表达式+DEBUG扩展）
+91f1a6b Day 1: 实现日志文件读取和打印功能
+````
+
+***
+
+## 六、安全红线
 
 - 上传GitHub/Dify前必须脱敏：无真实IP、主机名、内网信息
 - .gitignore 必含：`.env` / `config.json` / `**/__pycache__` / `reports/`
