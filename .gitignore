@@ -12,6 +12,7 @@ venv/
 # 报告输出
 product1-log-analyzer/reports/
 product1-log-analyzer/report_*.txt
+product1-log-analyzer/*report*.txt
 product3-inspection-tool/reports/
 
 # OS文件

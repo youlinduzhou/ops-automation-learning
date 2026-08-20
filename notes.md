@@ -506,7 +506,160 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 
 ***
 
-## 六、安全红线
+## 六、Day 6 笔记：argparse 命令行参数（08-20）
+
+### 脚本一句话
+
+在Day 5生成报告的基础上，用 argparse 让脚本支持命令行参数（`--file` 指定日志文件、`--output` 指定报告路径），不用再改代码第79行的硬编码文件名。
+
+### Day 6 新增4个知识点（逐词注释）
+
+#### ① `import argparse` + `argparse.ArgumentParser()` — 创建参数解析器
+
+- `argparse` = argument（参数）+ parse（解析），Python标准库模块，不用 pip 安装
+- `ArgumentParser()` = 参数解析器类（首字母大写），返回一个"空白的参数登记表"
+- `description='...'` = `-h` 帮助信息顶部的工具描述
+- `epilog='...'` = `-h` 帮助信息底部的结尾内容（放使用示例）
+- `formatter_class=argparse.RawDescriptionHelpFormatter` = 保留 epilog 里的换行符
+  - **不加时的实际效果**：argparse 会自动把 description 和 epilog 里所有换行缩成1个空格，2条示例挤成一行 `示例： python log_analyzer.py --file sample.log python log_analyzer.py --file sample.log --output my_report.txt`，可读性很差
+  - **加了的效果**（Terminal#2-16 已验证）：每条示例单独一行，跟代码里写的换行完全一致
+  - 使用时机：只要 description/epilog 里写了 `\n` 换行，就必须加这个 formatter，否则格式全乱
+
+#### ② `parser.add_argument('--file', required=True, help='...')` — 登记参数
+
+- `--file` = 命名参数（双横线开头，可选参数风格；传值时要写参数名 `--file sample.log`）
+- 位置参数 vs 命名参数详细对比（Day6第1个踩坑点：最开始写了位置参数 `file_path`，不符合实验手册要求）：
+
+  | 维度 | 位置参数 `add_argument('file_path')` | 命名参数 `add_argument('--file')` |
+  |------|-----------------------------------|---------------------------------|
+  | 调用方式 | `python log_analyzer.py sample.log`（直接写值，不用写参数名） | `python log_analyzer.py --file sample.log`（必须写参数名 `--file`） |
+  | 多参数顺序 | 敏感：必须按登记顺序传值 | 不敏感：`--output x --file y` 也能解析 |
+  | 强制必填 | **天然必填**（不传直接报错） | 默认选填，需加 `required=True` 才强制 |
+  | 属性名 | `args.file_path`（直接保留原名） | `args.file`（去掉开头双横线） |
+  | 使用场景 | 简单脚本（只有1个参数、一眼看明白） | 正式交付脚本（参数有2个以上、需要语义化的参数名、Done标准要求用命名参数） |
+
+- `required=True` = 把默认"可选"的命名参数变成"必填"（不传就报错+打印usage）
+- `help='...'` = `-h` 帮助信息里该参数的说明文字
+- `type=str`（Day6起步代码写过，但可以省略）：
+  - argparse **默认 type 就是 str**，所以 `type=str` 写不写效果一样
+  - 如果需要整数参数（如 `--top 3`），才写 `type=int`；日期参数写 `type=date`
+  - 省略写法更简洁，Day6最终版代码去掉了冗余的 `type=str`
+
+#### ③ `args = parser.parse_args()` + `args.file` / `args.output` — 解析并取值
+
+- `parse_args()` = 解析命令行输入，结果打包成 `args` 对象（不传参数时自动从 `sys.argv` 读）
+- **属性名转换规则**（Python强制，变量名不能含横线）：
+  - `--file` → `args.file`（去掉开头双横线）
+  - `--file-path` → `args.file_path`（去掉双横线 + 中间横线变下划线）
+  - `file_path`（位置参数）→ `args.file_path`（直接保留原名）
+- 不传的可选参数值 = `None`（Python 的"空值"，不是字符串'None'）
+
+#### ④ `def func(x, y=None):` — 函数默认参数
+
+- `output_path=None` = 定义函数时给参数设默认值，调用时可以不传
+- 默认值原则：**不要用可变对象（列表/字典）当默认值**（会在多次调用间共享状态），用 `None` 最安全
+- `if output_path is None:` = 判断"到底传没传"——用 `is` 而不是 `==`（None是单例对象，`is None` 是Python标准写法）
+
+### 记忆骨架（Day 6 在 Day 5 基础上新增的部分）
+
+````
+导入模块    → import argparse                                         ← 新
+函数加参    → def count_log_levels(file_path, output_path=None):     ← 新
+创建解析器  → parser = argparse.ArgumentParser(description, epilog, RawDescription) ← 新
+登记参数    → parser.add_argument('--file', required=True, help)     ← 新
+           → parser.add_argument('--output', help)                   ← 新
+解析输入    → args = parser.parse_args()                             ← 新
+调用函数    → count_log_levels(args.file, args.output)               ← 新
+分支判断    → if output_path is None: report_file = 默认名 / else: report_file = output_path ← 新
+打印提示    → print(未指定默认名 / 使用用户指定名)                    ← 新（创阶段）
+写报告      → with open(report_file, 'w') as f:                      ← 复用Day5
+生成提示    → print(✅ 报告已生成：report_file)                      ← 新（创阶段）
+````
+
+### 关键认知纠正
+
+1. **argparse 执行顺序必须严格是**：创 → 登（全）→ 解 → 用（创建解析器、登记所有参数、解析赋值、才能使用args）。登记参数前就用 `args.file` 会报 `NameError: name 'args' is not defined`
+2. **命名参数 `--file` 的属性名是 `args.file` 不是 `args['file']`**：argparse 返回的是对象（Namespace），用 `.属性名` 访问，不是字典用 `['键']`。如果硬写 `args['file']` 会报 `TypeError: 'Namespace' object is not subscriptable`
+3. **属性名3条规则必须死记**（最容易反复踩坑的点，Day6实际踩了属性名前后不一致的坑）：
+
+   | 参数定义写法 | 调用时写什么 | 属性名写什么 |
+   |-------------|------------|-----------|
+   | `add_argument('--file')` 命名参数 | `--file sample.log` | `args.file`（去掉开头双横线） |
+   | `add_argument('--file-path')` 中间有横线 | `--file-path abc.log` | `args.file_path`（去掉双横线 + 中间横线变下划线） |
+   | `add_argument('file_path')` 位置参数 | `sample.log`（直接写值） | `args.file_path`（直接保留原名） |
+
+   口诀：**定义决定属性名**——`-` 横线上报，`--` 开头去掉，定义时是什么字母属性名就是什么字母
+
+4. **缩进是 Python 的生命线**：报告生成代码缩进丢了，`return counter` 跑到模块顶层 → 报 `'return' outside function`。整个函数体必须统一4空格缩进
+5. **`*.txt` 通配符不会匹配 `sample.log`**：因为通配符匹配的是**后缀**，`.log` ≠ `.txt`，所以 sample.log 不会被 gitignore 的 `*report*.txt` 排除
+6. **函数默认参数用 `None` 不是 `''`**：空字符串 `''` 会被当成"有效值"传给后续逻辑（比如 `open('', 'w')` 会报错），而 `None` 明确表示"没传值"，后面 `if x is None:` 判断最清晰安全
+
+### 创阶段3个功能（全部验证通过）
+
+| 功能 | 代码 | 效果 |
+|------|------|------|
+| A. 报告生成路径提示 | `print(f"✅ 报告已生成：{report_file}")` | 用户明确知道文件生成在哪 |
+| B. -h 示例结尾 | `epilog=...` + `RawDescriptionHelpFormatter` | `-h` 底部显示2条使用示例，换行正确 |
+| C. 未传--output默认名提示 | `if output_path is None: print(f"未指定 --output，使用默认文件名：{report_file}")` | 不传时告诉用户用了哪个默认文件名 |
+| +. 传了--output也提示 | `else: print(f"使用用户指定的文件名：{report_file}")` | 传了时也明确提示 |
+
+### 边界测试（Done标准4/4全过）
+
+| # | 命令 | 实际结果 | 对应Done标准 |
+|---|------|---------|------------|
+| 1 | `python log_analyzer.py --file sample.log` | ✅ 生成 report_20260820.txt，内容正确（INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2） | Done标准第1条：`--file sample.log` 正常分析 |
+| 2 | `python log_analyzer.py --file sample.log --output abc_report.txt` | ✅ 生成 abc_report.txt，文件名正确，内容一致 | Done标准第2条：`--output` 指定输出文件名 |
+| 3 | `python log_analyzer.py`（不传任何参数） | ✅ argparse 自动报错：`error: the following arguments are required: --file` + 打印 usage 帮助信息（Terminal#99-102） | Done标准第3条：不传参数时打印使用说明 |
+| 4 | `python log_analyzer.py --file no_exists.log` | ✅ 不生成报告，打印"错误：文件 'no_exists.log' 不存在，请检查文件路径！"；返回空字典不崩溃（Terminal#108-111） | Done标准第4条：文件不存在时打印友好提示 |
+
+### 踩坑记录
+
+1. **位置参数 vs 命名参数混淆**（Day6起步坑）：最开始写的是位置参数 `parser.add_argument('file_path', type=str)`，虽然能跑但不符合 Done 标准要求的 `--file sample.log` 调用方式；而且属性名是 `args.file_path` 和调用时 `args.file` 对不上——位置参数不需要双横线，命名参数必须双横线，Done标准明确用命名参数。修复：改成命名参数版 `--file` + `--output`
+2. **属性名定义与调用前后不一致**：位置参数定义 `file_path`（属性名是 `args.file_path`），调用处却写 `print(args.file, args.output)` → `AttributeError: 'Namespace' object has no attribute 'file'`。修复：统一改命名参数 `--file`（属性名 `args.file`）+ `--output`（属性名 `args.output`）
+3. **登记参数前就使用 args**（顺序错误）：`parser = ...` 后直接写 `print(args.file, args.output)`，此时 `args = parser.parse_args()` 还没执行 → `NameError: name 'args' is not defined`。修复：严格按"创→登(全)→解→用"顺序
+4. **报告代码缩进漏了**（return outside function）：第63-84行整段缩进从4空格变成0空格，从函数体"漏"到了模块顶层，`return counter` 不在函数内 → 语法错误 `SyntaxError: 'return' outside function`。修复：整段统一4空格缩进，`return` 跟 `now = datetime.now()` 同级
+
+### Day 6 收尾四问
+
+1. **今天产出了什么？** → argparse 命令行参数功能：`--file` 必填指定日志文件，`--output` 可选指定报告路径，不传参数自动提示；创阶段加了3项用户体验增强
+2. **跑通了吗？** → 4个 Done 标准全过，3项创功能全验证：`-h` 示例、默认名提示、报告路径提示全部正常
+3. **卡在哪了？** → ①顺序错误：登记参数前就用 args → NameError ②缩进错误：报告代码跑出函数 → 'return' outside function
+4. **到布卢姆第几层了？** → 应用层（独立写出并跑通argparse）✅；评价层（定位并修复2个语法/逻辑错误）✅；创阶段3项增强 → 接近创造层
+
+### 一句话说清今天最重要的概念
+
+> argparse 核心就是"登记→解析→取值"三步；命名参数 `--xxx` 取属性时去掉横线（`args.xxx`），可选参数不传值是 `None`，函数默认参数用 `None` 最安全，缩进是 Python 的生命线。
+
+### Git 提交（待提交）
+
+````
+Day 6: 实现argparse命令行参数（--file/--output）
+````
+
+### 成品1进度总览
+
+| Day | 内容 | 状态 |
+|-----|------|------|
+| Day 1 | 日志读取 + 打印 + 友好提示 | ✅ |
+| Day 2 | 正则提取级别 + DEBUG扩展 + re.IGNORECASE | ✅ |
+| Day 3 | 字典统计级别 | ✅ |
+| Day 4 | 按类型归类错误 | ✅ |
+| Day 5 | 生成文本报告（txt格式） | ✅ |
+| **Day 6** | **命令行参数（--file/--output + argparse）** | ✅ **（今日完成）** |
+| Day 7 | 代码重构整理（函数拆分/主函数结构） | ⏳ 下一个 |
+| Day 8 | 批量处理多个日志文件 | ⏳ 未开始 |
+| Day 9 | 时间范围过滤功能 | ⏳ 未开始 |
+| Day 10 | HTML格式报告输出 | ⏳ 未开始 |
+| Day 11 | 高频错误检测功能 | ⏳ 未开始 |
+| Day 12 | 真实日志文件测试 | ⏳ 未开始 |
+| Day 13 | README项目说明文档 | ⏳ 未开始 |
+| Day 14 | 成品1收尾 + 周复盘 + 推送GitHub | ⏳ 未开始 |
+
+> **Day 7-14 说明**：按实验手册"成品1 Day 1-7 读→提取→统计→归类→报告→参数→重构"，Day 7 是重构整理；Day 8-14 是扩展功能（批量/过滤/HTML/高频检测/真实测试/README/推送）。当前 Day 1-6 全部完成。
+
+***
+
+## 七、安全红线
 
 - 上传GitHub/Dify前必须脱敏：无真实IP、主机名、内网信息
 - .gitignore 必含：`.env` / `config.json` / `**/__pycache__` / `reports/`
