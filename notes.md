@@ -99,6 +99,17 @@
 - open() 的三个参数分别是什么？→ 文件路径、模式 r/w/a、编码
 - 'sample.log' 是全盘搜索吗？→ 不是，只在当前工作目录找（相对路径）
 
+### Day 1 收尾四问（补记 08-23）
+
+1. **今天产出了什么？** → 日志读取脚本：能打开sample.log，逐行打印20行内容，文件不存在时打印友好提示不崩溃
+2. **跑通了吗？** → 跑通了，无报错正常退出，5项Done标准全过
+3. **卡在哪了？** → 默写时3个坑：①except缩进必须和try对齐 ②FileNotFoundError大小写敏感 ③中文输入法导致全角符号
+4. **到布卢姆第几层了？** → 应用层（独立写出并跑通）✅；"创"环节扩展了调试理解，接近评价层
+
+### 一句话说清今天最重要的概念
+
+> `with open()` 自动管理文件开关，`try/except FileNotFoundError` 精准兜底不掩盖其他错误，`def`把可复用代码打包起名，`if __name__ == '__main__'`触发执行。
+
 ### Git 提交历史
 
 ````
@@ -188,6 +199,17 @@ e277fd2 Day 0: 项目初始化（README/.gitignore/目录结构）
   - 如果需要统一大写输出，需加 `level = match.group().upper()`
 
 
+### Day 2 收尾四问（补记 08-23）
+
+1. **今天产出了什么？** → 日志级别提取：用正则从每行提取ERROR/WARNING/INFO/UNKNOWN，输出"行号: 级别"，扩展了DEBUG识别
+2. **跑通了吗？** → 跑通了，20行日志全部正确识别级别，含DEBUG扩展，3项Done标准全过
+3. **卡在哪了？** → ①re.search没找到返回None不是UNKNOWN（UNKNOWN是else分支贴的标签）②补课加re.IGNORECASE忽略大小写
+4. **到布卢姆第几层了？** → 理解层（5个知识点逐词注释）✅ → 应用层（独立写出并跑通）✅；"创"环节加DEBUG扩展，接近评价层
+
+### 一句话说清今天最重要的概念
+
+> `re.search(r'ERROR|WARNING|INFO', line, re.IGNORECASE)` 在每行搜索日志级别，找到返回Match对象（`match.group()`取文字），没找到返回None（else分支标UNKNOWN），`enumerate(f, start=1)`给每行编上行号。
+
 ### Git 提交
 
 ````
@@ -269,6 +291,17 @@ WARNING: 4次（第3,8,13,17行）
 ERROR: 10次（第4,5,7,9,10,12,14,16,18,20行）
 合计：6+4+10 = 20行 ✅
 ````
+
+### Day 3 收尾四问（补记 08-23）
+
+1. **今天产出了什么？** → 字典统计功能：用counter字典统计每个级别出现次数，输出"ERROR: 10次, WARNING: 4次, INFO: 6次"，并return给Day5报告用
+2. **跑通了吗？** → 跑通了，统计结果与20行日志完全吻合（6+4+10=20），3项Done标准全过
+3. **卡在哪了？** → ①counter.get的0不能去掉（否则KeyError）②return是让外面能用统计数据（不return就锁在函数内）③"两条线"原则：.py只放干净代码，详细注解放notes.md
+4. **到布卢姆第几层了？** → 应用层（独立写出并跑通）✅；边界测试全过（文件不存在返回空字典/空文件不崩溃/异常行UNKNOWN也被统计），接近评价层
+
+### 一句话说清今天最重要的概念
+
+> `counter[level] = counter.get(level, 0) + 1` 是字典计数的核心公式（有则+1，没有从0记1），`return counter`把计分板交出去供Day5报告使用。
 
 ### Git 提交
 
@@ -368,6 +401,17 @@ CATEGORIES = {
 - 文件不存在 → 友好提示 + 返回空字典
 - 空文件 → 输出空统计、不崩溃
 - 异常格式（小写级别/无级别行）→ UNKNOWN正确 + 发现并修复小写级别漏归类bug
+
+### Day 4 收尾四问（补记 08-23）
+
+1. **今天产出了什么？** → 错误分类功能：用CATEGORIES字典把ERROR行按关键词归为网络/权限/服务/其他四类，每类统计个数
+2. **跑通了吗？** → 跑通了，10条ERROR全归类（网络5+权限3+服务2=10），3项Done标准全过
+3. **卡在哪了？** → ①代码是无脑关键词匹配器，规则顺序决定冲突行归类（L12 MySQL connection归网络）②边界测试抓到小写error漏归类bug，靠加.upper()修复（改代码不是改测试数据）
+4. **到布卢姆第几层了？** → 应用层（独立写出并跑通）✅；评价层（边界测试自主发现并修复真bug）✅；"创"环节理解规则顺序影响，接近创造层
+
+### 一句话说清今天最重要的概念
+
+> `CATEGORIES`字典定义分类规则（键=类别名，值=关键词列表），`keyword.lower() in line.lower()`忽略大小写做子串判断，`return category`写在for里实现"命中即停、只归第一个匹配"。
 
 ### Git 提交
 
@@ -636,7 +680,135 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 Day 6: 实现argparse命令行参数（--file/--output）
 ````
 
-### 成品1进度总览
+### Day 7 收尾四问
+
+1. **今天产出了什么？** → 代码重构整理：把 `count_log_levels()` 一个95行的大函数拆成6个职责单一的函数（read_log_lines/extract_level/count_levels/classify_errors/generate_report + 原有classify_error保留），`__main__`只负责argparse参数解析+5步调用链，主程序逻辑从"一个函数塞一切"变成"调用函数→处理数据→输出结果"三步清晰流程
+2. **跑通了吗？** → 4条Done标准全过：①6个函数（超出5个要求）✅ ②主程序逻辑清晰 ✅ ③重构后运行结果与重构前完全一致（INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2）✅ ④每个函数有docstring和关键行注释 ✅；4条边界回归测试全通过（默认运行/指定输出/不传参数/文件不存在）✅
+3. **卡在哪了？** → ①read_log_lines迭代5轮才写对：第1轮塞太多东西违反单一职责→第2轮递归调用+缺except→第3轮for循环里[]创建又丢弃→第4轮lines=[]写进docstring当注释→第5轮才正确 ②extract_level迭代3轮：第1轮打印line_number未定义变量→第2轮缩进7格不标准→第3轮修正 ③classify_errors迭代3轮：第1轮混入了generate_report全部写报告代码→第2轮print('→')放在if外面+标题在for循环内→第3轮删报告代码修缩进 ④__main__迭代3轮：第1轮line未定义+一行两表达式语法错→第2轮多了一行旧函数调用→第3轮修正
+4. **到布卢姆第几层了？** → 应用层（独立完成5个函数拆分并跑通）✅；分析层（能诊断"函数塞了太多东西""递归调用""缩进混乱"等多层问题）✅；评价层（能判断旧代码哪些行归哪个新函数、哪个变量未定义、哪行缩进不标准）✅；创造层（"创"环节修print输出格式——从classify_error和classify_errors两个函数的end=''不一致问题自主定位并修复，输出从混乱变成10条归类各占一行）✅
+
+### 一句话说清今天最重要的概念
+
+> 重构的本质不是改写代码而是**拆分职责**：一个函数只做一件事、只接收一个输入、只返回一个输出，主函数只负责"串联"不调度细节——拆前95行一个函数，拆后6个函数各司其职，输出完全不变。
+
+### Day 7 踩坑记录（完整）
+
+1. **递归调用误写**：`return read_log_lines(file_path)` 意思是"调用自己再返回结果"，会无限循环崩溃；正确是 `return lines`（返回函数里存好的列表变量）
+2. **空列表创建又丢弃**：`for line in f: []` 每次循环创建一个无名空列表然后扔掉，20次循环20个空列表，行没存进任何容器
+3. **变量写在docstring里当注释**：`lines = []` 写在三引号 `"""` 内部，被Python当成字符串注释不执行，导致后续 `lines.append()` 报 `NameError`
+4. **if块内缩进不标准**：`level = ...` 写在 `if` 下只有7格空格，标准是8格（if下多4格）；`classify_errors`里 `if ERROR:` 下只有11格，标准是12格。功能不受影响但风格不标准
+5. **一行两个表达式**：`total_line = classify_error(lines), generate_report(...)` 一行写了赋值+函数调用两个表达式，语法错误
+6. **旧函数名残留调用**：拆完5个函数后 `__main__` 里还留着 `count_log_levels(args.file, args.output)` 调用，这个函数已不存在
+7. **`count_log_levels`函数参数命名**：旧函数参数是 `output_path=None`（可选默认值），拆到 `generate_report` 后参数变成 `output_path`（无默认值，因为 __main__ 传 `args.output`，可能为 None，在函数内部判断 `if output_path is None`）
+8. **print输出格式不一致**：`classify_error` 里的 `print("匹配到关键词：xxx")` 带换行，`classify_errors` 里的 `print(f' → {category}', end='')` 不带换行，两条输出交替出现时粘在一行；修复：删掉 `classify_error` 的调试输出 + 去掉 `end=''` 让每条归类独占一行
+
+### Day 7 5个函数的最终版对照
+
+| # | 函数名 | 输入 | 输出 | 调用其他函数 |
+|---|---|---|---|---|
+| 1 | `read_log_lines(file_path)` | 文件路径字符串 | 行列表 `['...', '...', ...]` | 无 |
+| 2 | `extract_level(line)` | 单行字符串 | 级别字符串 `'ERROR'/'WARNING'/'INFO'/'UNKNOWN'` | `re.search()` |
+| 3 | `count_levels(lines)` | 行列表 | counter字典 `{'ERROR': 10, 'WARNING': 4, ...}` | `extract_level()` |
+| 4 | `classify_errors(lines)` | 行列表 | error_counter字典 `{'网络错误': 5, '权限错误': 3, ...}` | `extract_level()` + `classify_error()` |
+| 5 | `generate_report(counter, error_counter, file_path, total_lines, output_path)` | 统计字典×2 + 路径×2 + 行数 | 无（副作用：写文件+打印） | `datetime.now()` + `open()` |
+
+**调用链**：`read_log_lines` → `count_levels`（调用extract_level）→ `classify_errors`（调用extract_level+classify_error）→ `generate_report`
+
+### Day 7 边界回归测试（4/4全过）
+
+| # | 命令 | 实际结果 | 对应Done标准 |
+|---|------|---------|------------|
+| 1 | `python log_analyzer.py --file sample.log` | ✅ 输出INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2 + 生成report_20260823.txt | Done标准第1条：≥5个函数 ✅ |
+| 2 | `python log_analyzer.py --file sample.log --output abc_report2.txt` | ✅ 生成abc_report2.txt，文件名正确内容一致 | Done标准第2条：主程序逻辑清晰 ✅ |
+| 3 | `python log_analyzer.py`（不传参数） | ✅ argparse自动报错 `--file is required` + 打印usage | Done标准第3条：重构后结果一致 ✅ |
+| 4 | `python log_analyzer.py --file no_exists.log` | ✅ 打印"错误：文件'no_exists.log'不存在"，不崩溃不生成报告 | Done标准第4条：每函数有注释 ✅ |
+
+### Git 提交
+
+````
+Day 7: 代码重构，封装函数
+````
+
+***
+
+## 第一周复盘（计划：2026-08-10 周一晚，实际：2026-08-23 补记）
+
+> **时间偏差说明**：计划08-10复盘，实际因驻场工作忙延迟到08-23（Day 7执行日）补写。7个Day实际跨度08-05~08-23，比计划多18天，但Day顺序没乱，按"断了从断点继续"原则执行。
+
+### 本周完成了什么？
+
+- **Day 1（08-05~06，提交91f1a6b）**：日志读取脚本——用 `with open()` 打开sample.log逐行打印20行内容，`try/except FileNotFoundError` 处理文件不存在时打印友好提示不崩溃，建立了"拆→仿→练→创"学习节奏和"两条线"笔记体系（.py写代码+notes.md写理解）
+- **Day 2（08-06，提交8f7145f）**：正则提取日志级别——用 `re.search(r'ERROR|WARNING|INFO', line)` 从每行提取级别输出"行号: 级别"，扩展了 `|DEBUG` 识别，后期补课加 `re.IGNORECASE` 忽略大小写，3项边界测试全通过
+- **Day 3（08-09，提交c280a5c）**：字典统计级别——用 `counter[level] = counter.get(level, 0) + 1` 统计每级出现次数输出"ERROR: 10次, WARNING: 4次, INFO: 6次"，`return counter` 交出计分板供Day 5报告用，统计结果20行吻合（6+4+10=20）
+- **Day 4（08-09，提交632473c）**：按类型归类ERROR——用 `CATEGORIES` 字典定义分类规则，`keyword.lower() in line.lower()` 忽略大小写做子串判断，`return category` 写在for里实现"命中即停只归第一个匹配"，边界测试自主发现小写error漏归类bug靠加 `.upper()` 修复，10条ERROR全归类（网络5+权限3+服务2）
+- **Day 5（08-18，提交ccac122+b6ab484）**：生成文本报告——用 `datetime.now().strftime()` 获取当前时间拼报告文件名和内容，`open('w')` + `f.write()` 写文件（write不自动换行要加 `\n`），"创"环节加调试输出看每个ERROR命中哪个关键词，与Day 3/4组合跑通"读→提取→统计→归类→报告"完整链条
+- **Day 6（08-20，提交8f9865b）**：命令行参数——用argparse实现 `--file` 必填 + `--output` 可选，创阶段加3项用户体验增强（报告路径提示/-h示例/默认名提示）+1项自加（传了--output也提示），4个坑修复（位置参数混淆/属性名不一致/顺序错误NameError/缩进错误return outside function），4项Done标准全过
+- **Day 7（08-23，今日）**：代码重构整理——把 `count_log_levels()` 一个95行的大函数拆成6个职责单一的函数（read_log_lines/extract_level/count_levels/classify_errors/generate_report + 原有classify_error保留），每个函数经历多轮迭代才写对，`__main__` 只负责参数解析+5步调用链，4条Done标准+4条边界回归测试全通过
+
+### 没完成什么？为什么？
+
+- **第一周复盘延迟13天完成**：计划08-10写，实际08-23补写。原因：08-09~08-20期间驻场工作忙，周末冲刺时间被占用，复盘被挤到Day 7执行时一起做
+- **Day 5完成时间严重滞后（计划08-08，实际08-18）**：间隔10天。原因：中间08-10~08-17无学习记录，属"断档"，按规则"断了从断点继续"执行，未从Day 1重来
+- **Day 2的 `re.IGNORECASE` 补课（提交6e27553）**：实验手册Day 2要求"忽略大小写"，实际Day 2没做，08-09补上。算完成但不算一次到位
+
+### 学到了什么新技能？
+
+- **`with open()` 上下文管理**：自动管理文件开关，不用手动 `close()`；配合 `try/except FileNotFoundError` 实现友好错误处理
+- **`re.search()` 正则表达式**：搜索模式、`|` 表示"或"、`match.group()` 取匹配文字、`re.IGNORECASE` 忽略大小写；没找到返回 None（不是 UNKNOWN，UNKNOWN 是 else 分支贴的标签）
+- **字典计数公式 `dict[key] = dict.get(key, 0) + 1`**：有则+1，没有从0记1，`get()` 的0不能省否则KeyError
+- **`return` 在 for 循环里的"命中即停"**：`classify_error` 函数用 `return category` 写在 for 内部，命中第一个关键词立即结束函数，不继续匹配后面的类别
+- **`datetime.now().strftime()` 格式化时间**：`%Y%m%d` 拼文件名（如20260823）、`%Y-%m-%d %H:%M:%S` 拼报告内容
+- **`open('w')` + `f.write()` 写文件**：与 `open('r')` 对称，`write` 不自动换行必须手动加 `\n`，文件不存在自动创建、已存在会覆盖
+- **argparse 命令行参数**：命名参数 `--file` 取属性时去掉双横线（`args.file`），可选参数 `--output` 不传值是 `None`，函数默认参数用 `None` 不用 `''`；执行顺序严格"创→登(全)→解→用"
+- **函数拆分与重构（单一职责原则）**：一个函数只做一件事、只接收一个输入、只返回一个输出；拆前95行一个函数，拆后6个函数各司其职，输出完全不变；`__main__` 只负责"串联"不调度细节
+
+### 遇到了什么坑？怎么解决的？
+
+- **坑1：except 缩进必须和 try 对齐** → 解决：默写时死记"4空格缩进，except 和 try 同一层"
+- **坑2：FileNotFoundError 大小写敏感** → 解决：F、N、F 三个大写，写错就报 `NameError`
+- **坑3：中文输入法导致全角符号** → 解决：写代码前切英文输入法，写完后检查括号/引号是否半角
+- **坑4：re.search 没找到返回 None 不是 UNKNOWN** → 解决：在 else 分支手动 `level = 'UNKNOWN'` 贴标签
+- **坑5：`counter.get(level, 0)` 的 0 不能省** → 解决：省了后键不存在报 `KeyError`，用 `.get()` 的目的就是提供默认值
+- **坑6：小写 error 被 IGNORECASE 识别为级别，但 `if level == 'ERROR'` 大小写敏感漏归类** → 解决：加 `level = match.group().upper()` 统一大写（改代码不是改测试数据）
+- **坑7：报告代码缩进丢失，`return` 跑到模块顶层** → 解决：整段统一4空格缩进，报 `'return' outside function` 时查 `return` 是否在 `def` 块内
+- **坑8：argparse 登记参数前就用 `args.file` → NameError** → 解决：严格按"创→登(全)→解→用"顺序，`args = parser.parse_args()` 必须在使用 `args` 之前
+- **坑9：递归调用误写 `return read_log_lines(file_path)`** → 解决：改成 `return lines`（返回函数里存好的列表变量）
+- **坑10：`lines = []` 写在 docstring 三引号里当注释** → 解决：三引号内全部内容都是字符串不执行，变量创建必须在三引号外面
+- **坑11：`for line in f: []` 每次创建空列表被丢弃** → 解决：函数开头先创建有名字的列表 `lines = []`，循环里 `lines.append(line)` 逐行添加
+- **坑12：一行写两个表达式 `total_line = classify_error(lines), generate_report(...)` 语法错** → 解决：拆成两行独立语句
+
+### 下周需要调整什么？
+
+- **写完代码必须立刻跑回归测试**：Day 7重构花了很多轮迭代才发现print格式问题，如果每次改完立即跑一次 `python log_analyzer.py --file sample.log`，能更快发现问题
+- **重构前先画"拆前→拆后"映射表**：Day 7开始时如果先画一张"旧代码行号→新函数"对照表，不会把 generate_report 的代码混进 classify_errors
+- **函数体写完先只写空框架再填**：read_log_lines 迭代5轮的核心教训——先写"创建列表→for循环append→return"骨架，再考虑try/except，避免把多个功能混在一起
+- **收尾四问必须当天写**：Day 1-4 的收尾四问都是今天（08-23）补写的，记忆模糊导致描述不够准确。Day 7+起每天代码写完就立刻写四问，不等复盘
+- **实验手册Done标准当天勾+经验总结当天写**：Day 5 的遗漏（4个复选框没勾、经验总结段没写）就是因为做完没同步更新。Day 7+起代码写完就勾Done+写经验总结
+- **开始准备Day 8-14（第二周）**：批量处理/时间过滤/HTML报告/高频检测/真实测试/README/推送，重点在批量处理和HTML报告（这两个是成品1区别于"脚本"的关键能力）
+
+### 本周完成率打分（主文档8.6.2节）
+
+- 本周完成了7个Day（成品1 Day 1-7），完成 **7/7** 个，全部能跑通
+- 打分：**10分**（全部完成且能跑通）
+- 本周微反馈产出：GitHub提交记录（Day 1-7共9次提交：91f1a6b / 8f7145f / 6e27553 / c280a5c / 632473c / ccac122 / b6ab484 / 8f9865b / 今日提交）+ 代码终态（log_analyzer.py 6个函数129行）+ 报告输出截图（report_20260823.txt内容正确）
+
+### 本周质量保障检查
+
+- [ ] `git status` 检查：提交中无敏感文件（.env/config.json/真实日志）
+- [ ] 提交信息符合规范（`Day X:` 格式，Day 1-7 全部符合）
+- [ ] 本周产出已全部push到GitHub（不积压到月底）
+
+### 本周学习数据统计
+
+| 指标 | 数据 |
+|------|------|
+| 学习时长 | 约 21 小时（7个Day × 平均3小时/天，含迭代调试时间） |
+| 完成的Day数 | 7 / 7 |
+| 新学Python知识点 | 20 个（with open / try-except / enumerate / re.search / match.group / counter字典计数 / return/for / CATEGORIES映射 / .lower() / datetime / f.write / argparse / 函数定义/调用/return / 函数拆分重构 等） |
+| 卡点记录条数 | 12 条（见上"遇到了什么坑"完整列表） |
+| GitHub提交次数 | 8 次（含今日提交后共9次） |
+
+### 成品1进度总览（更新）
 
 | Day | 内容 | 状态 |
 |-----|------|------|
@@ -645,17 +817,17 @@ Day 6: 实现argparse命令行参数（--file/--output）
 | Day 3 | 字典统计级别 | ✅ |
 | Day 4 | 按类型归类错误 | ✅ |
 | Day 5 | 生成文本报告（txt格式） | ✅ |
-| **Day 6** | **命令行参数（--file/--output + argparse）** | ✅ **（今日完成）** |
-| Day 7 | 代码重构整理（函数拆分/主函数结构） | ⏳ 下一个 |
+| Day 6 | 命令行参数（--file/--output + argparse） | ✅ |
+| **Day 7** | **代码重构整理（6个函数/主函数结构）** | **✅（今日完成）** |
 | Day 8 | 批量处理多个日志文件 | ⏳ 未开始 |
 | Day 9 | 时间范围过滤功能 | ⏳ 未开始 |
 | Day 10 | HTML格式报告输出 | ⏳ 未开始 |
 | Day 11 | 高频错误检测功能 | ⏳ 未开始 |
 | Day 12 | 真实日志文件测试 | ⏳ 未开始 |
 | Day 13 | README项目说明文档 | ⏳ 未开始 |
-| Day 14 | 成品1收尾 + 周复盘 + 推送GitHub | ⏳ 未开始 |
+| Day 14 | 成品1收尾 + 推送GitHub | ⏳ 未开始 |
 
-> **Day 7-14 说明**：按实验手册"成品1 Day 1-7 读→提取→统计→归类→报告→参数→重构"，Day 7 是重构整理；Day 8-14 是扩展功能（批量/过滤/HTML/高频检测/真实测试/README/推送）。当前 Day 1-6 全部完成。
+> **当前状态**：成品1 Day 1-7 全部完成 ✅。下一步进入第二周 Day 8-14（批量处理/时间过滤/HTML报告/高频检测/真实测试/README/推送）。
 
 ***
 
