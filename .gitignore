@@ -13,6 +13,10 @@ venv/
 product1-log-analyzer/reports/
 product1-log-analyzer/report_*.txt
 product1-log-analyzer/*report*.txt
+product1-log-analyzer/batch_test.txt
+product1-log-analyzer/batch_summary.txt
+product1-log-analyzer/single_output.txt
+product1-log-analyzer/emptydir/
 product3-inspection-tool/reports/
 
 # OS文件
