@@ -1,0 +1,6 @@
+2026-08-25 08:15:32 INFO Application started successfully
+2026-08-25 08:15:33 WARNING Disk usage reached 85 percent
+2026-08-25 08:22:10 ERROR SSH connection timeout to backup server
+2026-08-25 08:30:45 INFO User login succeeded
+2026-08-25 09:12:08 ERROR Permission denied for user backup_ops
+2026-08-25 09:15:50 WARNING Memory usage reached 90 percent

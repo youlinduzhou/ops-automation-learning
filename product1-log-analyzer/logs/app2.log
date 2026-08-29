@@ -1,0 +1,5 @@
+2026-08-25 10:02:11 INFO Service health check passed
+2026-08-25 10:05:19 ERROR MySQL service stopped unexpectedly
+2026-08-25 10:06:02 WARNING High CPU usage detected
+2026-08-25 10:10:33 INFO Config reloaded
+2026-08-25 10:12:47 WARNING Slow response time from API

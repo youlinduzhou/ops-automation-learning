@@ -852,6 +852,84 @@ Day 6: 实现argparse命令行参数（--file/--output）
 Day 7: 代码重构，封装函数
 ````
 
+### Day 8 笔记：批量多文件处理（08-29）
+
+**脚本一句话**：`log_analyzer.py` 从"单文件分析"升级为"批量分析"——`--dir` 指定目录 → `glob` 找出所有 .log → 逐个走 Day 7 调用链（读→统计→归类）→ 元组打包 → 生成汇总报告（每文件一段 + 所有文件总计）
+
+#### Day 8 新增6个知识点（逐词注释）
+
+1. **`glob.glob('模式')`** — 全局匹配：返回所有匹配文件的完整路径列表（如 `glob.glob('./logs/*.log')` → `['./logs/app1.log', './logs/app2.log']`）。**大陷阱**：目录不存在时**静默返回 `[]` 不报错**，无法区分"目录存在但没log"和"目录不存在"——必须先用 `os.path.isdir` 检查
+2. **`os.path.isdir(路径)`** — 目录存在→True，不存在或是文件→False。配合 `os.path.join(dir_path, '*.log')` 拼接路径（自动处理 `/`，Windows/Linux 都兼容）
+3. **`parser.error('消息')`** — argparse 自带的报错+usage 输出：打印 `error: 消息` + 完整 usage，退出码2。触发时机由自己控制（Day 6 的 `required=True` 是 argparse 替你拦）
+4. **相邻字符串自动拼接** — Python 把挨着写的多个字符串常量**无缝粘成一个**，粘的时候**不会自动加换行**。epilog 里两行示例漏写结尾 `\n` 就会挤在同一行
+5. **with 块作用域** — 缩进即作用域：缩进退回 `with` 行同级时，文件句柄自动关闭，再 `f.write` 报 `ValueError: I/O operation on closed file`
+6. **元组打包/解包** — `batch_results.append((log_file, counter, error_counter, len(lines)))` 小括号包4样东西；`for file_path, counter, error_counter, total_lines in batch_results:` 一行解包4个变量，一一对应
+
+#### Day 8 新增2个函数（对照）
+
+| # | 函数名 | 输入 | 输出 | 调用其他函数 |
+|---|---|---|---|---|
+| 1 | `find_log_files(dir_path)` | 目录路径 | `.log` 文件路径列表（目录不存在返回 `[]` 并打印提示） | `os.path.isdir()` + `glob.glob()` |
+| 2 | `generate_batch_report(batch_results, output_path)` | 打包列表（每元素4元组）+ 输出路径 | 无（副作用：写汇总报告） | `datetime.now()` + `open()` |
+
+**调用链**：`--dir` 分支 → `find_log_files` → for 循环：`read_log_lines` → `count_levels` → `classify_errors` → 元组打包进 `batch_results` → 循环外 `generate_batch_report`（每文件一段 + 最后总计段）
+
+#### Day 8 结构改动（argparse + 主入口）
+
+1. `--file` 去掉 `required=True`，新增 `--dir` 参数（两参数独立登记，各有各的 help）
+2. 主入口两条**平行分支**：`if args.dir:` 走批量（新逻辑）→ `else:` 走单文件（Day 7 原调用链一行不改）
+3. 都没传 → `parser.error('必须指定 --file 或 --dir 其中一个')`
+4. **默认文件名都加了秒级时间戳 `%H%M%S`**（创阶段增强，比"只改批量名"更彻底）：单文件 `report_时间戳.txt`、批量 `report_batch_时间戳.txt`，任何两次运行互不覆盖
+5. `--output` help 改为通用描述"不传则用默认文件名"（不再写死 batch 前缀）
+
+#### Day 8 创阶段增强
+
+| # | 增强 | 说明 |
+|---|---|---|
+| A | 默认文件名秒级时间戳 | 解决"批量报告被单文件运行覆盖"冲突 |
+| B | 汇总报告末尾"所有文件总计"段 | 循环内顺手累加 `total_counter`/`total_error` 两个字典，循环外一次性输出总行数+错误总计 |
+
+#### Day 8 踩坑记录（完整，按发生顺序）
+
+1. **`--file` 与 `--dir` 写成别名**：`parser.add_argument('--file', '--dir')` 是**一个参数**（--dir 只是 --file 的别名），值都存进 `args.file`，`args.dir` 不存在 → `AttributeError`。修法：拆成两次独立 `add_argument`
+2. **缺 `import os`**：用了 `os.path.isdir()` 没导入 → `NameError`
+3. **缩进掉出 `__main__` 块**：第124行起顶格，代码脱离 `if __name__ == '__main__':` 保护
+4. **分支嵌套错位（最深坑之一）**：单文件/批量两种模式挤进一条路径，`dir_path` 一个变量装两种东西 → 传 `--file` 被 `isdir` 拦截报"目录不存在"（它检查的是文件！），传 `--dir` 时拿到文件列表却没用、把目录塞给 `read_log_lines` → `IsADirectoryError` 崩溃。修法：**两条平行分支** `if args.dir:` / `else:`，各自只用各自的参数（`args.dir`/`args.file`），消灭中转变量
+5. **中文引号 `‘’`**：违反代码规范第3条（必须英文半角）
+6. **`exit(1)` 替代**：目录不存在用 `exit(1)` 硬退，与 `read_log_lines` 的"打印提示+返回 `[]`"风格不一致；`find_log_files` 统一为返回 `[]` + 主块判空
+7. **epilog 相邻字符串自动拼接**：第2行示例结尾漏 `\n`，`-h` 里3条示例挤在一行
+8. **总计段位置错**：`f.write(总计)` 缩进在 for 循环体内 → 每个文件后面都跟一段"总计"，只显示该文件自己的数字。修法：总计段缩进和 `for` 对齐
+9. **`.get('ERROR', 0)` 键名陷阱（最深坑之一）**：`error_counter` 的键是 `'网络错误'`/`'权限错误'`/`'服务异常'`/`'其他错误'`，**没有 `'ERROR'` 键**；`.get()` 键名写错**不报错**，静默返回默认值0 → "问题总计"永远把错误算成0。教训：**字典键名必须与写入时一致**，别凭记忆猜
+10. **小节里写错字典（隐蔽，不崩溃）**：app2 的"错误分类统计"误写成累计字典 `total_error`，显示"服务异常：2个"（1+1）实际是1个——数字悄悄变大比崩溃更危险。"写小节"用 `error_counter`，"累加"用 `total_error`
+11. **with 块缩进掉出去（×2次）**：`ValueError: I/O operation on closed file`——第一次崩在循环体 `f.write`（4格掉出 with），修好后再崩在总计段（也是4格），最后 print 也掉进循环体导致"✅已生成"打印两次。根因：**只要还拿着 `f` 写东西，缩进就必须在 `with` 肚子里**
+12. **总计段缩进加过头**：要求加4格加到8格，实际加到12格又掉进 for 循环体 → 总计段+print 各执行2次。**缩进标尺**：函数体4格 / with 内8格 / for 体12格
+
+#### Day 8 最终验证（边界/回归测试全过）
+
+| # | 命令 | 实际结果 |
+|---|---|---|
+| 1 | `python log_analyzer.py --dir ./logs/` | ✅ 批量报告 report_batch_时间戳.txt：app1（INFO2/WARNING2/ERROR2，网络1/权限1）+ app2（INFO2/WARNING2/ERROR1，服务异常**1个**）+ 总计段只在最末尾出现1次（总行数11、错误总计3）；readme.txt 被 glob 过滤 |
+| 2 | `python log_analyzer.py --file sample.log` | ✅ 单文件报告 report_时间戳.txt：INFO6/WARNING4/ERROR10，网络5/权限3/服务2，**不带 batch 前缀**，Day 7 功能完整保留 |
+| 3 | `python log_analyzer.py`（不传参数） | ✅ 友好报错"必须指定 --file 或 --dir 其中一个" + usage |
+| 4 | `python log_analyzer.py --dir ./no_such_dir/` | ✅ 友好提示"目录 './no_such_dir/' 不存在"，不崩溃 |
+
+#### Day 8 收尾四问
+
+1. **今天产出了什么？** → 新增2个函数（`find_log_files` 目录查找、`generate_batch_report` 汇总报告）；argparse 改造（`--file` 去 required + 新增 `--dir` + 两条平行分支）；批量模式 for 循环复用 Day 7 四函数链 + 元组打包累加总计；默认文件名加秒级时间戳解决覆盖冲突；测试数据 logs/app1.log、app2.log、readme.txt（干扰项验证 glob 过滤）
+2. **跑通了吗？** → 4条验证全过（批量/单文件/不传参/目录不存在）；批量报告数字全对（app2 服务异常1个、总计 11行/3错误）；单文件报告与 Day 7 结果完全一致，证明回归无破坏
+3. **卡在哪了？** → ①**分支嵌套错位**：两种模式挤一条路径、一个变量装两种东西，--file 被 isdir 劫持、--dir 读目录崩溃；②**with 块缩进掉出去×2次**：f.write 掉出 with 块报 `I/O operation on closed file`（先崩循环体、再崩总计段），缩进加过头又让总计段+print 执行两次；③**`.get('ERROR', 0)` 键名陷阱**：error_counter 没有 'ERROR' 键，.get() 静默返回0不报错，"问题总计"永远少算错误
+4. **到布卢姆第几层了？** → 应用层（argparse 多模式互斥分支、glob+isdir 目录遍历独立完成）✅；分析层（看懂元组打包→解包→两字典累加的数据流向，能把总计段放到循环外）✅；评价层（连续两次缩进错位后，能看着报错行号画出缩进地图、口头定位哪段掉出 with，不再靠试错）✅
+
+#### 一句话说清今天最重要的概念
+
+> 批量处理的核心不是"循环"本身，而是**两条平行分支 + 一个数据容器**：单文件是旧逻辑（else 原样保留），批量是新逻辑（if 打头）——新旧互不污染；每个文件的结果打成元组存进列表，循环外一次性写汇总——"循环内收集、循环外输出"让总计段天然只出现一次。
+
+#### Git 提交
+
+````
+Day 8: 批量多文件处理
+````
+
 ***
 
 ## 第一周复盘（计划：2026-08-10 周一晚，实际：2026-08-23 补记）
@@ -942,7 +1020,7 @@ Day 7: 代码重构，封装函数
 | Day 5 | 生成文本报告（txt格式） | ✅ |
 | Day 6 | 命令行参数（--file/--output + argparse） | ✅ |
 | **Day 7** | **代码重构整理（6个函数/主函数结构）** | **✅（今日完成）** |
-| Day 8 | 批量处理多个日志文件 | ⏳ 未开始 |
+| **Day 8** | **批量处理多个日志文件（--dir/glob/汇总报告）** | **✅（今日完成）** |
 | Day 9 | 时间范围过滤功能 | ⏳ 未开始 |
 | Day 10 | HTML格式报告输出 | ⏳ 未开始 |
 | Day 11 | 高频错误检测功能 | ⏳ 未开始 |
@@ -950,7 +1028,7 @@ Day 7: 代码重构，封装函数
 | Day 13 | README项目说明文档 | ⏳ 未开始 |
 | Day 14 | 成品1收尾 + 推送GitHub | ⏳ 未开始 |
 
-> **当前状态**：成品1 Day 1-7 全部完成 ✅。下一步进入第二周 Day 8-14（批量处理/时间过滤/HTML报告/高频检测/真实测试/README/推送）。
+> **当前状态**：成品1 Day 1-8 全部完成 ✅。下一步进入 Day 9（时间范围过滤），第二周剩余：Day 9-14（时间过滤/HTML报告/高频检测/真实测试/README/推送）。
 
 ### 成品1代码重构与RAG全链路的类比（联网补充，2026.08.23）
 
