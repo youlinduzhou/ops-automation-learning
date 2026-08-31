@@ -797,10 +797,10 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 
 > argparse 核心就是"登记→解析→取值"三步；命名参数 `--xxx` 取属性时去掉横线（`args.xxx`），可选参数不传值是 `None`，函数默认参数用 `None` 最安全，缩进是 Python 的生命线。
 
-### Git 提交（待提交）
+### Git 提交
 
 ````
-Day 6: 实现argparse命令行参数（--file/--output）
+Day 6: 实现argparse命令行参数（--file/--output）（8f9865b）
 ````
 
 ### Day 7 收尾四问
@@ -1134,7 +1134,7 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 #### Git 提交
 
 ````
-Day 9: 时间范围过滤（待提交）
+Day 9: 时间范围过滤（f552739）
 ````
 
 ***
