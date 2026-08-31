@@ -1,4 +1,4 @@
-# 运维日志分析脚本 Day8 批量多文件处理
+# 运维日志分析脚本 Day9 时间过滤
 
 import re  #正则表达式模块
 import argparse #命令行参数解析模块
@@ -46,6 +46,36 @@ def extract_level(line):
     else:
         level = 'UNKNOWN'
     return level
+
+def filter_lines_by_time(lines, start_time, end_time):
+    """根据时间范围过滤日志行
+       lines: 所有日志行(必填)
+       start_time: 开始时间(必填)
+       end_time: 结束时间(必填)
+       返回: 过滤后的日志行列表
+    """
+
+    start_data = datetime.strptime(start_time, '%Y-%m-%d') # 转换为时间对象
+    end_data = datetime.strptime(end_time, '%Y-%m-%d') .replace(hour=23, minute=59, second=59) # 转换为时间对象
+
+    filtered_lines = [] # 创建空列表，用来存过滤后的日志行
+
+    for line in lines: # 遍历所有日志行
+
+        try:
+            parts = line.split() # 按空格分割日志行，得到每个字段
+            time_str = parts[0] + ' ' + parts[1] # 提取时间字段
+            log_time = datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S') # 转换为时间对象
+        except ( IndexError, ValueError): # 如果时间字段格式错误，跳过
+            print(f"警告：时间字段格式错误，已跳过行 {line.strip()}")
+            # 打印错误行，方便调试用
+            continue # 跳过当前循环，继续下一行
+            
+        if start_data <= log_time <= end_data: 
+            filtered_lines.append(line) # 时间在范围内，加入过滤后的列表
+            
+    return filtered_lines # 返回过滤后的日志行列表
+
 
 def count_levels(lines):
     """统计日志级别出现次数
@@ -182,9 +212,14 @@ if __name__ == '__main__':  # 主函数入口
         formatter_class=argparse.RawDescriptionHelpFormatter)  # 1.创建解析器
     parser.add_argument('--file', help='单个日志文件路径（可选）')  # 2.登记--file
     parser.add_argument('--dir', help='日志文件所在目录路径（可选）')  # 3.登记--dir
-    parser.add_argument('--output', help='输出报告文件路径（可选，不传则用默认文件名）')  # 4.登记--output
-    args = parser.parse_args()  # 5.解析 → args对象此时才存在   
+    parser.add_argument('--start', help='开始日期(YYYY-MM-DD, 格式：2023-01-01)') # 4登记--start
+    parser.add_argument('--end', help='结束日期(YYYY-MM-DD, 格式：2023-01-01)') # 5登记--end
+    parser.add_argument('--output', help='输出报告文件路径（可选，不传则用默认文件名）') # 6登记--output
+    args = parser.parse_args()
 
+    if (args.start and not args.end) or (not args.start and args.end): # 有开始日期但没有结束日期的，或者没有开始日期，但是有结束日期的
+       parser.error('必须同时指定 --start 和 --end，格式：YYYY-MM-DD, 格式：2023-01-01，或者两个都不传')  
+        
     if not args.file and not args.dir:  # 都没传
         parser.error('必须指定 --file 或 --dir 其中一个')
 
@@ -197,14 +232,18 @@ if __name__ == '__main__':  # 主函数入口
                 lines = read_log_lines(log_file)      # 单个文件 → 传文件路径
                 
                 if lines:  # 单个文件读不到就跳过，不中断批量（Done标准伏笔）
+                    if args.start and args.end:              # 传了时间参数才过滤
+                        lines = filter_lines_by_time(lines, args.start, args.end)
                     counter = count_levels(lines)
                     error_counter = classify_errors(lines)
                     batch_results.append((log_file, counter, error_counter, len(lines)))
             generate_batch_report(batch_results, args.output)
-    
+
     else:  # ===== 单文件分支：Day 8 =====
-        lines = read_log_lines(args.file)   # 直接用 args.file，不要中转变量
+        lines = read_log_lines(args.file)
         if lines:
+            if args.start and args.end:              # 传了时间参数才过滤
+                lines = filter_lines_by_time(lines, args.start, args.end)
             counter = count_levels(lines)
             error_counter = classify_errors(lines)
             generate_report(counter, error_counter, args.file, len(lines), args.output)
