@@ -1025,13 +1025,13 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 | **Day 7** | **代码重构整理（6个函数/主函数结构）** | **✅（今日完成）** |
 | **Day 8** | **批量处理多个日志文件（--dir/glob/汇总报告）** | **✅（今日完成）** |
 | **Day 9** | **时间范围过滤功能（--start/--end）** | **✅（今日完成）** |
-| Day 10 | HTML格式报告输出 | ⏳ 未开始 |
+| **Day 10** | **HTML格式报告输出（--format）** | **✅（今日完成）** |
 | Day 11 | 高频错误检测功能 | ⏳ 未开始 |
 | Day 12 | 真实日志文件测试 | ⏳ 未开始 |
 | Day 13 | README项目说明文档 | ⏳ 未开始 |
 | Day 14 | 成品1收尾 + 推送GitHub | ⏳ 未开始 |
 
-> **当前状态**：成品1 Day 1-9 全部完成 ✅。下一步进入 Day 10（HTML报告），第二周剩余：Day 10-14（HTML报告/高频检测/真实测试/README/推送）。
+> **当前状态**：成品1 Day 1-10 全部完成 ✅。下一步进入 Day 11（高频错误检测），第二周剩余：Day 11-14（高频检测/真实测试/README/推送）。
 
 ### 成品1代码重构与RAG全链路的类比（联网补充，2026.08.23）
 
@@ -1135,6 +1135,80 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 
 ````
 Day 9: 时间范围过滤（f552739）
+````
+
+***
+
+## 七-C、Day 10 笔记：HTML格式报告输出（09-02）
+
+**脚本一句话**：`log_analyzer.py` 新增 `--format` 参数（txt/html），支持 HTML 格式报告输出——"数据层（dict）→ 格式层（html writer）"；不传 `--format` 时默认 txt（向后兼容）。
+
+#### Day 10 新增5个知识点（逐词注释）
+
+1. **HTML 文档三件套结构** — `<html>` 包 `<head>` + `<body>`；`<head>` 里放 `<title>`（浏览器标签页标题）和 `<meta charset="UTF-8">`（**防中文乱码关键**，txt 靠 `open(encoding='utf-8')` 控制编码，HTML 必须靠 meta 标签告诉浏览器编码）
+2. **表格嵌套层级** — `<table>` → `<tr>`（行）→ `<td>`（单元格），从大到小像 Excel：表包行、行包格
+3. **多行 f-string / 字符串列表拼接** — 用 `"""` 或列表 `append()` 一行一个元素，最后 `"\n".join(lines)` 一次写入，比一行挤到底可读性好
+4. **`html.escape()` 防 XSS** — 浏览器只按 HTML 规则解析、**不会**自动转义用户输入；`<` → `&lt;`、`>` → `&gt;`。动态内容（文件路径/分类名/级别名）必须转义，自己写的标签不用
+5. **`argparse` `choices` + `default`** — `choices=['txt','html']` 让 argparse 自动拒绝非法值（`--format bad` → 自动报错，不用自己写 if）；`default='txt'` 保证不传时走老路
+
+#### Day 10 新增4个函数（对照）
+
+| 函数名 | 职责层 | 输入 | 输出 |
+|---|---|---|---|
+| `build_report_content(...)` | **数据层**（单文件） | counter/error_counter/file_path/total_lines | 纯 dict（type/file_path/total_lines/counter/error_counter/generated_at） |
+| `build_batch_report_content(...)` | **数据层**（批量） | batch_results 元组列表 | 纯 dict（type/files/total_counter/total_error/generated_at） |
+| `_render_stats_table(title, items)` | 格式层助手（私有，下划线开头） | 表头名 + 统计字典 | 完整 `<table>` HTML 字符串 |
+| `write_html_report(content, output_path)` | **格式层** | 数据 dict + 输出路径 | 按 type 分流 single/batch 渲染 HTML 并写文件 |
+
+**三层职责链**（Day 10 最重要架构）：
+```
+读→过滤→统计→归类 → 数据层build_*_content() → 纯dict → 格式层writer → 文件
+                                              txt → generate_report()（Day 9老函数，不动）
+                                              html → write_html_report()（新）
+```
+**核心原则**：build 函数只产数据（dict）、不含格式、不写文件；写文件是 writer 的事。以后加 PDF/Excel 只需新增 writer，不动数据层。
+
+#### Day 10 结构改动（argparse + 主入口）
+
+1. 新增 `--format` 参数：`parser.add_argument('--format', choices=['txt','html'], default='txt', ...)`（登记在 `--output` 前）
+2. 批量分支末尾：`if args.format=='html': content = build_batch_report_content(batch_results); write_html_report(content, args.output)`，else 走 `generate_batch_report` 老路
+3. 单文件分支末尾：同样 `if args.format=='html'` 分流到新函数，else 走 `generate_report` 老路
+
+#### Day 10 踩坑记录（按发生顺序）
+
+1. **职责错位：build 函数直接写 HTML 文件** — 第一版把 `f.write(HTML)` 全塞进 `build_report_content()`，等于"数据+格式+写文件"三合一。修法：build 只 `return` 纯 dict，HTML 渲染挪到独立 `write_html_report()`
+2. **build 签名多带 `output_path`** — 既然 build 只产数据就不该有输出路径，带了这个参数说明两层又被合并了。修法：删掉该参数，写文件交给 writer
+3. **批量函数引用不存在的变量** — `build_batch_report_content` 里用了 `file_path`/`counter`/`total_lines`，但批量数据是 `batch_results` 元组列表，必须先 `for file_path, counter, error_counter, total_lines in batch_results:` 解包。修法：外层 for 先解包再取字段
+4. **主入口引用不存在的变量/函数** — `html_write`（从没定义）、`generate_html_report`（函数不存在）、`else: parser.error('未指定--output...')`（txt 不传 --output 是合法行为不该报错）。修法：用 `args.format` + `if/else` 分流，choices 自己会拒绝非法值
+5. **gitignore 漏了 html 报告** — `.html` 测试产物未忽略会误提交。修法：.gitignore 增加 `product1-log-analyzer/report_*.html` 规则
+
+**思维模式总结**：Day 10 的核心不是"HTML 标签怎么写"，而是**职责分层**——数据层（dict）与格式层（writer）分离、加新格式只加 writer 不动数据、向后兼容靠 `default` 和 if/else 老路。写函数前先问自己："这个函数该不该管写文件？该不该知道输出路径？"——答案来自它的名字和职责。
+
+#### Day 10 最终验证（边界/回归测试全过）
+
+| # | 命令 | 实际结果 |
+|---|---|---|
+| 1 | `python log_analyzer.py --file sample.log` | ✅ 与 Day 9 完全一致（INFO6/WARNING4/ERROR10，网络5/权限3/服务2）→ `report_*.txt`，**向后兼容** |
+| 2 | `python log_analyzer.py --file sample.log --format html` | ✅ 生成 `report_*.html`，浏览器打开中文正常、表格有边框、数字对 |
+| 3 | `python log_analyzer.py --dir .\logs --format html` | ✅ 生成 `report_batch_*.html`，app1+app2 每个文件一段 + 所有文件总计 |
+| 4 | `python log_analyzer.py --file sample.log --format bad` | ✅ argparse 自动报错 `invalid choice: 'bad' (choose from txt, html)`，choices 安检生效 |
+| 5 | 浏览器打开测试2/3 产物 | ✅ 中文无乱码、表格正常、批量含"所有文件总计" |
+
+#### Day 10 收尾四问
+
+1. **今天产出了什么？** → 数据层 2 函数（`build_report_content`/`build_batch_report_content`，只返 dict）+ 格式层 2 函数（`_render_stats_table`/`write_html_report`）+ argparse `--format`（choices+default）；txt 旧函数（`generate_report`/`generate_batch_report`）零改动
+2. **跑通了吗？** → 5 条验证全过：txt 回归一致 / html 单文件 / html 批量 / choices 拒绝非法值 / 浏览器中文表格正常
+3. **卡在哪了？** → ① 第一版把 HTML 写死在 build 函数里（职责错位，build 应只返 dict）② 批量函数误用不存在的 `file_path`/`counter`（未先解包元组）③ 主入口引用不存在的 `html_write`/`generate_html_report` 变量；④ .gitignore 漏 html 报告规则
+4. **到布卢姆第几层了？** → 应用层（`--format` + 4 函数独立完成）✅；分析层（看懂"数据层 dict → 格式层 writer"分离，判断 default 保证向后兼容）✅；评价层（评价 A 方案塞 if 职责错位 vs B 方案分层正确，能推断加 PDF 的方向）✅；创造层（`_render_stats_table` 私有助手函数复用——单文件/批量/总计三处共用，消灭重复代码）✅
+
+#### 一句话说清今天最重要的概念
+
+> HTML 报告输出 = **"数据与格式分离"**：`build_*_report_content()` 只把统计结果整理成**纯 dict**（数据层），`write_html_report()` 专门把 dict 渲染成 HTML 写文件（格式层），txt 老函数原样保留。主入口用 `--format`（`choices=['txt','html']`、`default='txt'`）选择走哪条路——加新格式只加 writer 不动数据，向后兼容靠 default。
+
+#### Git 提交
+
+````
+Day 10: HTML格式报告输出（提交号待补）
 ````
 
 ***
