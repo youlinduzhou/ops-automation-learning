@@ -20,7 +20,7 @@
 
 ### 环境配置（6组30项全部通过 ✅）
 
-<!--inkdown-t:widths=90,510-->
+
 | 组别       | 结果                                                                     |
 | ---------- | ------------------------------------------------------------------------ |
 | Python     | 3.14.4 + pip 26.0.1 + 清华源 + venv                                      |
@@ -121,7 +121,7 @@ e277fd2 Day 0: 项目初始化（README/.gitignore/目录结构）
 
 ***
 
-## 二-B、Day 2 笔记：提取日志级别（08-06）
+## 三、Day 2 笔记：提取日志级别（08-06）
 
 ### 脚本一句话
 
@@ -218,7 +218,7 @@ e277fd2 Day 0: 项目初始化（README/.gitignore/目录结构）
 
 ***
 
-## 三、Day 3 笔记：字典统计日志级别（08-09）
+## 四、Day 3 笔记：字典统计日志级别（08-09）
 
 ### 脚本一句话
 
@@ -313,7 +313,7 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 
 ***
 
-## 三-B、Day 4 笔记：按问题类型归类（08-09）
+## 五、Day 4 笔记：按问题类型归类（08-09）
 
 ### 脚本一句话
 
@@ -385,7 +385,7 @@ CATEGORIES = {
 - **代码是无脑关键词匹配器**：它不理解语义（"MySQL连接超时"的真实原因可能是网络/权限），但在代码里只按规则顺序机械匹配
 - **L12冲突行** `MySQL connection timeout`：含connection（网络）和MySQL（服务），按"网络→权限→服务"顺序归**网络错误**；规则顺序调换归类就变
 - **边界测试抓到的bug**：小写 `error` 被 re.IGNORECASE 识别为级别，但 `if level == 'ERROR':` 大小写敏感漏掉归类 → 修法：**改代码** `level = match.group().upper()`，不是改测试数据
-- **`.upper()` 顺带合并统计键**：`error` 和 `ERROR` 不再分两个键
+- **`.upper()`** **顺带合并统计键**：`error` 和 `ERROR` 不再分两个键
 
 ### 分类统计验证
 
@@ -421,7 +421,7 @@ CATEGORIES = {
 
 ***
 
-## 四、成品2 Day 7 复盘 + 技术总结（08-09补）
+## 六、成品2 Day 7 复盘 + 技术总结（08-09补）
 
 ### 复盘问题
 
@@ -455,7 +455,7 @@ CATEGORIES = {
 ### 成品2面试话术（主文档7.4节，需大声念3遍到脱稿）
 
 > "我有RAG检索系统的开发经验——基于已有源码，实现了BM25+Vector+RRF融合检索、文档分块、向量检索、重排序的完整链路。用Dify搭建运维知识库AI助手时，这些概念我不用从头学，Dify只是把代码变成了可视化配置。我搭了一个AI助手，导入常见运维FAQ，同事打开网页就能提问，降低了运维重复咨询量。"
->
+> 
 > **话术说明**：第一段描述RAG开发经验，第二段描述Dify实操能力，两段衔接点在于"这些概念我不用从头学"——证明不是现学现卖，而是有底层理解。后续如有自己的Markdown软件项目（借鉴类似功能），可替换第一段的具体项目描述。
 
 ### 待办提醒
@@ -464,7 +464,7 @@ CATEGORIES = {
 
 ***
 
-## 四B、成品2进阶认知（联网补充，2026.08.23整理）
+## 七、成品2进阶认知（联网补充，2026.08.23整理）
 
 > **定位**：成品2学到的是"怎么做"（Dify界面配置），本节补的是"为什么这么做"（底层原理），以及成品3/未来面试必须理解的2026年技术趋势。
 
@@ -480,10 +480,11 @@ CATEGORIES = {
 - 官方实测：召回率提升35%；Dify 1.13.0内置Re-rank模型配合后可再提升30%+（延迟+50~100ms）
 
 **父块模式选型**：
-| 模式 | 说明 | 推荐场景 |
-|---|---|---|
-| `paragraph` | 按分隔符拆分多个父块 | 默认，精度与上下文平衡 |
-| `full_doc` | 整篇文档作为一个父块（超10000 tokens截断） | 需要全局上下文的场景 |
+
+| 模式        | 说明                                       | 推荐场景               |
+| ----------- | ------------------------------------------ | ---------------------- |
+| `paragraph` | 按分隔符拆分多个父块                       | 默认，精度与上下文平衡 |
+| `full_doc`  | 整篇文档作为一个父块（超10000 tokens截断） | 需要全局上下文的场景   |
 
 来源：[Dify 1.9.0 Parent-child-HQ模板](https://www.kdjingpai.com/dify-xinzhishiliushui/)
 
@@ -506,11 +507,11 @@ Day 5选了TopK=3但没解释为什么。背后有两个大模型天然缺陷：
 
 答非所问不全是模型幻觉，是**全链路误差累积**。归为三类：
 
-| 类别 | 表现 | 例子 |
-|---|---|---|
-| **检索问题** | 召回片段语义接近但不回答问题 | 问"社保缴费比例"召回"社保缴费基数"——语义接近但回答不了（语义偏移误差） |
-| **切块问题** | 片段被切到跨chunk，单条丢失上下文 | 一段话被切两半，前半有前提条件、后半有结论，召回时只命中一半 |
-| **生成问题** | 检索对了但提示词约束不够，模型自由发挥 | 已召回正确片段但模型没引用、加了知识库没有的细节 |
+| 类别         | 表现                                   | 例子                                                                   |
+| ------------ | -------------------------------------- | ---------------------------------------------------------------------- |
+| **检索问题** | 召回片段语义接近但不回答问题           | 问"社保缴费比例"召回"社保缴费基数"——语义接近但回答不了（语义偏移误差） |
+| **切块问题** | 片段被切到跨chunk，单条丢失上下文      | 一段话被切两半，前半有前提条件、后半有结论，召回时只命中一半           |
+| **生成问题** | 检索对了但提示词约束不够，模型自由发挥 | 已召回正确片段但模型没引用、加了知识库没有的细节                       |
 
 **修复优先级（投入产出比）**：切块策略优化（10%+） > 重排序（15%，延迟+50~100ms） > 提示词工程（不能修复检索/切块） > 换大模型（成本最高且治标不治本）
 
@@ -522,12 +523,12 @@ Day 5选了TopK=3但没解释为什么。背后有两个大模型天然缺陷：
 
 **4.1 Naive RAG已被淘汰，但RAG没死**（2026年业界最强共识）
 
-| 维度 | Naive RAG（已淘汰） | Agentic RAG（当前主流） |
-|---|---|---|
-| 检索次数 | 1次（单次） | 多轮（按需，自主决策） |
-| 查询处理 | 固定 | 拆解+迭代+重排+验证 |
-| 自我评估 | 无 | 有（判断检索是否充分） |
-| 工具调用 | 无 | API/SQL/图谱/外部搜索 |
+| 维度     | Naive RAG（已淘汰） | Agentic RAG（当前主流） |
+| -------- | ------------------- | ----------------------- |
+| 检索次数 | 1次（单次）         | 多轮（按需，自主决策）  |
+| 查询处理 | 固定                | 拆解+迭代+重排+验证     |
+| 自我评估 | 无                  | 有（判断检索是否充分）  |
+| 工具调用 | 无                  | API/SQL/图谱/外部搜索   |
 
 Naive RAG三大结构性缺陷：①切块破坏文档结构②单次检索漏掉跨片段答案③模型对弱检索结果自信合成且无人评估
 
@@ -541,51 +542,51 @@ Naive RAG三大结构性缺陷：①切块破坏文档结构②单次检索漏�
 
 **4.3 Long Context不是RAG的替代品，是共存**
 
-| 场景 | 选Long Context | 选RAG |
-|---|---|---|
-| 知识库规模 | ≤750页单文档 | 海量文档 |
-| 单次查询成本 | $0.60 | $0.012（便宜50倍） |
-| 适用场景 | 合同/财报/代码精读 | 高频更新/权限控制/多租户 |
+| 场景         | 选Long Context     | 选RAG                    |
+| ------------ | ------------------ | ------------------------ |
+| 知识库规模   | ≤750页单文档       | 海量文档                 |
+| 单次查询成本 | $0.60              | $0.012（便宜50倍）       |
+| 适用场景     | 合同/财报/代码精读 | 高频更新/权限控制/多租户 |
 
 KV Cache物理瓶颈：Llama 3.1 70B每token消耗328KB，128K上下文需40GB显存，1M需328GB——超过4张H100总量。最优解是**Hybrid架构**：RAG粗筛 + Long Context精读。
 
 **4.4 这个趋势与成品1代码重构的类比**
 
-| 成品1（代码层面） | RAG（系统层面） |
-|---|---|
-| 一个函数塞95行所有事 | 一个Naive RAG管道 |
-| 拆成6个职责单一函数 | 拆成多专家Agent各司其职 |
-| 输出不变，更易维护/测试 | 准确率提升，幻觉可控 |
-| 单一职责原则 | 单一Agent只处理一类业务 |
+| 成品1（代码层面）       | RAG（系统层面）         |
+| ----------------------- | ----------------------- |
+| 一个函数塞95行所有事    | 一个Naive RAG管道       |
+| 拆成6个职责单一函数     | 拆成多专家Agent各司其职 |
+| 输出不变，更易维护/测试 | 准确率提升，幻觉可控    |
+| 单一职责原则            | 单一Agent只处理一类业务 |
 
 来源：[XYZBytes 2026.06](https://www.xyzbytes.com/blog/agentic-rag-naive-rag-is-dead)、[LaRA论文](https://arxiv.org/pdf/2502.09977v2)、[腾讯云 2026.06](https://cloud.tencent.com/developer/article/2697482)、[CSDN 2026.05](https://blog.csdn.net/qq_73472828/article/details/160750136)
 
 ### 5. Dify版本兼容性提醒（联网补充，避免踩坑）
 
-| 版本/功能 | 影响 | 应对 |
-|---|---|---|
-| v1.13.0父子分段召回不稳定 | 同设置结果排序不一致；top-k=10能召回top-k=9不能 | 升级到修复版本（PR #29396/#29426已合并）；临时方案：关混合检索只用向量检索排查 |
-| v1.13.0混合检索去重 | 减少最多50%结果 | 影响召回率评估准确性，注意区分 |
-| v1.13.0内置Re-rank（bge-reranker-v2） | 精度+30%+，延迟+50~100ms | 成品2当时关了Rerank，知识库扩充后可重新开启 |
-| 中文场景Embedding | bge-large-zh优于embedding-3 | 成品2用embedding-3，可测试替换看召回率变化 |
-| Dify 1.9.0 | 引入Parent-child-HQ内置模板 | 比手动配置更便捷，支持paragraph/full_doc |
+| 版本/功能                             | 影响                                            | 应对                                                                           |
+| ------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| v1.13.0父子分段召回不稳定             | 同设置结果排序不一致；top-k=10能召回top-k=9不能 | 升级到修复版本（PR #29396/#29426已合并）；临时方案：关混合检索只用向量检索排查 |
+| v1.13.0混合检索去重                   | 减少最多50%结果                                 | 影响召回率评估准确性，注意区分                                                 |
+| v1.13.0内置Re-rank（bge-reranker-v2） | 精度+30%+，延迟+50~100ms                        | 成品2当时关了Rerank，知识库扩充后可重新开启                                    |
+| 中文场景Embedding                     | bge-large-zh优于embedding-3                     | 成品2用embedding-3，可测试替换看召回率变化                                     |
+| Dify 1.9.0                            | 引入Parent-child-HQ内置模板                     | 比手动配置更便捷，支持paragraph/full_doc                                       |
 
 来源：[GitHub Issue #33392](https://github.com/langgenius/dify/issues/33392)、[掘金 2025.10](https://juejin.cn/post/7561493855574343680)
 
 ### 6. 暂不学的内容（等成品3或以后）
 
-| 知识点 | 不学原因 | 何时学 |
-|---|---|---|
-| 置信度闸门（入口/出口） | 成品2只有1个LLM节点，无路由结构 | 成品3引入工作流后 |
-| RAG长尾问题全体系（query拆解/多库路由/冷热分层） | 成品2只有1份文档，不存在冷门问题 | 知识库扩充到5+文档后 |
-| 上下文溢出（三级记忆/信息压缩/任务切片） | Dify自带会话记忆 | 自建Agent系统时 |
-| RAG重复检索优化（语义唯一标识/多级缓存/分片路由） | 个人工具不存在并发请求 | 部署到多人使用时 |
-| 权限越权全链路（隐式权限向量/诱导攻击识别） | 个人学习工具，不涉及多部门 | 成品3多知识库阶段 |
-| 约束解码 / 检索生成迭代 | Dify平台不支持 | 用代码自建RAG时 |
+| 知识点                                            | 不学原因                         | 何时学               |
+| ------------------------------------------------- | -------------------------------- | -------------------- |
+| 置信度闸门（入口/出口）                           | 成品2只有1个LLM节点，无路由结构  | 成品3引入工作流后    |
+| RAG长尾问题全体系（query拆解/多库路由/冷热分层）  | 成品2只有1份文档，不存在冷门问题 | 知识库扩充到5+文档后 |
+| 上下文溢出（三级记忆/信息压缩/任务切片）          | Dify自带会话记忆                 | 自建Agent系统时      |
+| RAG重复检索优化（语义唯一标识/多级缓存/分片路由） | 个人工具不存在并发请求           | 部署到多人使用时     |
+| 权限越权全链路（隐式权限向量/诱导攻击识别）       | 个人学习工具，不涉及多部门       | 成品3多知识库阶段    |
+| 约束解码 / 检索生成迭代                           | Dify平台不支持                   | 用代码自建RAG时      |
 
 ***
 
-## 五、Day 5 笔记：生成文本报告（08-18）
+## 八、Day 5 笔记：生成文本报告（08-18）
 
 ### 脚本一句话
 
@@ -598,17 +599,23 @@ KV Cache物理瓶颈：Llama 3.1 70B每token消耗328KB，128K上下文需40GB�
 - `from datetime import datetime` = 从datetime模块拿出datetime工具（模块和工具同名）
 - `datetime.now()` = 抓取此刻系统时间，含年月日时分秒和微秒
 - `now.strftime('%Y-%m-%d %H:%M:%S')` = 把时间格式化成字符串
+
   - `strftime` = string format time（字符串格式化时间）
   - `%Y`=4位年 `%m`=2位月 `%d`=2位日 `%H`=时 `%M`=分 `%S`=秒
+
 - `now.strftime('%Y%m%d')` = 生成 `20260818`，用于拼报告文件名
 
 #### ② `open('w')` + `f.write()` — 写文件
 
 - `open(文件名, 'w', encoding='utf-8')` = 以写入模式打开文件
+
   - `'w'` = write 模式（和之前用的 `'r'` read 对称）
   - 文件不存在会**自动创建**，已存在会**覆盖**
+
 - `f.write('内容')` = 把字符串写进文件
+
   - **不会自动换行**，必须手动加 `\n`
+
 - `f"..."` = f-string格式化，`{变量名}` 会被替换成变量的值
 
 ### 记忆骨架（Day 5 在 Day 4 基础上新增的部分）
@@ -630,9 +637,9 @@ KV Cache物理瓶颈：Llama 3.1 70B每token消耗328KB，128K上下文需40GB�
 ### 关键认知
 
 - **总行数** = `line_number`（enumerate产生的行号，循环结束后就是最后一行的行号）
-- **`now` 必须在函数内部获取**，不能放在模块顶部——否则每次运行报告时间都是导入时的时间，不是运行时的时间
+- **`now`** **必须在函数内部获取**，不能放在模块顶部——否则每次运行报告时间都是导入时的时间，不是运行时的时间
 - **报告文件名动态生成**：`report_{now.strftime('%Y%m%d')}.txt`，每天运行自动用当天日期
-- **`write` 不加 `\n` 就全挤成一行**——这是和 `print` 最大的区别（print自动换行，write不换行）
+- **`write`** **不加** **`\n`** **就全挤成一行**——这是和 `print` 最大的区别（print自动换行，write不换行）
 
 ### 踩坑记录
 
@@ -673,7 +680,7 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 
 ***
 
-## 六、Day 6 笔记：argparse 命令行参数（08-20）
+## 九、Day 6 笔记：argparse 命令行参数（08-20）
 
 ### 脚本一句话
 
@@ -688,37 +695,43 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 - `description='...'` = `-h` 帮助信息顶部的工具描述
 - `epilog='...'` = `-h` 帮助信息底部的结尾内容（放使用示例）
 - `formatter_class=argparse.RawDescriptionHelpFormatter` = 保留 epilog 里的换行符
+
   - **不加时的实际效果**：argparse 会自动把 description 和 epilog 里所有换行缩成1个空格，2条示例挤成一行 `示例： python log_analyzer.py --file sample.log python log_analyzer.py --file sample.log --output my_report.txt`，可读性很差
   - **加了的效果**（Terminal#2-16 已验证）：每条示例单独一行，跟代码里写的换行完全一致
   - 使用时机：只要 description/epilog 里写了 `\n` 换行，就必须加这个 formatter，否则格式全乱
+
 
 #### ② `parser.add_argument('--file', required=True, help='...')` — 登记参数
 
 - `--file` = 命名参数（双横线开头，可选参数风格；传值时要写参数名 `--file sample.log`）
 - 位置参数 vs 命名参数详细对比（Day6第1个踩坑点：最开始写了位置参数 `file_path`，不符合实验手册要求）：
 
-  | 维度 | 位置参数 `add_argument('file_path')` | 命名参数 `add_argument('--file')` |
-  |------|-----------------------------------|---------------------------------|
-  | 调用方式 | `python log_analyzer.py sample.log`（直接写值，不用写参数名） | `python log_analyzer.py --file sample.log`（必须写参数名 `--file`） |
-  | 多参数顺序 | 敏感：必须按登记顺序传值 | 不敏感：`--output x --file y` 也能解析 |
-  | 强制必填 | **天然必填**（不传直接报错） | 默认选填，需加 `required=True` 才强制 |
-  | 属性名 | `args.file_path`（直接保留原名） | `args.file`（去掉开头双横线） |
-  | 使用场景 | 简单脚本（只有1个参数、一眼看明白） | 正式交付脚本（参数有2个以上、需要语义化的参数名、Done标准要求用命名参数） |
+  | 维度       | 位置参数 `add_argument('file_path')`                          | 命名参数 `add_argument('--file')`                                         |
+  | ---------- | ------------------------------------------------------------- | ------------------------------------------------------------------------- |
+  | 调用方式   | `python log_analyzer.py sample.log`（直接写值，不用写参数名） | `python log_analyzer.py --file sample.log`（必须写参数名 `--file`）       |
+  | 多参数顺序 | 敏感：必须按登记顺序传值                                      | 不敏感：`--output x --file y` 也能解析                                    |
+  | 强制必填   | **天然必填**（不传直接报错）                                  | 默认选填，需加 `required=True` 才强制                                     |
+  | 属性名     | `args.file_path`（直接保留原名）                              | `args.file`（去掉开头双横线）                                             |
+  | 使用场景   | 简单脚本（只有1个参数、一眼看明白）                           | 正式交付脚本（参数有2个以上、需要语义化的参数名、Done标准要求用命名参数） |
 
 - `required=True` = 把默认"可选"的命名参数变成"必填"（不传就报错+打印usage）
 - `help='...'` = `-h` 帮助信息里该参数的说明文字
 - `type=str`（Day6起步代码写过，但可以省略）：
+
   - argparse **默认 type 就是 str**，所以 `type=str` 写不写效果一样
   - 如果需要整数参数（如 `--top 3`），才写 `type=int`；日期参数写 `type=date`
   - 省略写法更简洁，Day6最终版代码去掉了冗余的 `type=str`
+
 
 #### ③ `args = parser.parse_args()` + `args.file` / `args.output` — 解析并取值
 
 - `parse_args()` = 解析命令行输入，结果打包成 `args` 对象（不传参数时自动从 `sys.argv` 读）
 - **属性名转换规则**（Python强制，变量名不能含横线）：
+
   - `--file` → `args.file`（去掉开头双横线）
   - `--file-path` → `args.file_path`（去掉双横线 + 中间横线变下划线）
   - `file_path`（位置参数）→ `args.file_path`（直接保留原名）
+
 - 不传的可选参数值 = `None`（Python 的"空值"，不是字符串'None'）
 
 #### ④ `def func(x, y=None):` — 函数默认参数
@@ -746,38 +759,38 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 ### 关键认知纠正
 
 1. **argparse 执行顺序必须严格是**：创 → 登（全）→ 解 → 用（创建解析器、登记所有参数、解析赋值、才能使用args）。登记参数前就用 `args.file` 会报 `NameError: name 'args' is not defined`
-2. **命名参数 `--file` 的属性名是 `args.file` 不是 `args['file']`**：argparse 返回的是对象（Namespace），用 `.属性名` 访问，不是字典用 `['键']`。如果硬写 `args['file']` 会报 `TypeError: 'Namespace' object is not subscriptable`
+2. **命名参数** **`--file`** **的属性名是** **`args.file`** **不是** **`args['file']`** ：argparse 返回的是对象（Namespace），用 `.属性名` 访问，不是字典用 `['键']`。如果硬写 `args['file']` 会报 `TypeError: 'Namespace' object is not subscriptable`
 3. **属性名3条规则必须死记**（最容易反复踩坑的点，Day6实际踩了属性名前后不一致的坑）：
 
-   | 参数定义写法 | 调用时写什么 | 属性名写什么 |
-   |-------------|------------|-----------|
-   | `add_argument('--file')` 命名参数 | `--file sample.log` | `args.file`（去掉开头双横线） |
-   | `add_argument('--file-path')` 中间有横线 | `--file-path abc.log` | `args.file_path`（去掉双横线 + 中间横线变下划线） |
-   | `add_argument('file_path')` 位置参数 | `sample.log`（直接写值） | `args.file_path`（直接保留原名） |
+   | 参数定义写法                             | 调用时写什么             | 属性名写什么                                      |
+   | ---------------------------------------- | ------------------------ | ------------------------------------------------- |
+   | `add_argument('--file')` 命名参数        | `--file sample.log`      | `args.file`（去掉开头双横线）                     |
+   | `add_argument('--file-path')` 中间有横线 | `--file-path abc.log`    | `args.file_path`（去掉双横线 + 中间横线变下划线） |
+   | `add_argument('file_path')` 位置参数     | `sample.log`（直接写值） | `args.file_path`（直接保留原名）                  |
 
    口诀：**定义决定属性名**——`-` 横线上报，`--` 开头去掉，定义时是什么字母属性名就是什么字母
 
 4. **缩进是 Python 的生命线**：报告生成代码缩进丢了，`return counter` 跑到模块顶层 → 报 `'return' outside function`。整个函数体必须统一4空格缩进
-5. **`*.txt` 通配符不会匹配 `sample.log`**：因为通配符匹配的是**后缀**，`.log` ≠ `.txt`，所以 sample.log 不会被 gitignore 的 `*report*.txt` 排除
-6. **函数默认参数用 `None` 不是 `''`**：空字符串 `''` 会被当成"有效值"传给后续逻辑（比如 `open('', 'w')` 会报错），而 `None` 明确表示"没传值"，后面 `if x is None:` 判断最清晰安全
+5. **`*.txt`** **通配符不会匹配** **`sample.log`** ：因为通配符匹配的是**后缀**，`.log` ≠ `.txt`，所以 sample.log 不会被 gitignore 的 `*report*.txt` 排除
+6. **函数默认参数用** **`None`** **不是** **`''`** ：空字符串 `''` 会被当成"有效值"传给后续逻辑（比如 `open('', 'w')` 会报错），而 `None` 明确表示"没传值"，后面 `if x is None:` 判断最清晰安全
 
 ### 创阶段3个功能（全部验证通过）
 
-| 功能 | 代码 | 效果 |
-|------|------|------|
-| A. 报告生成路径提示 | `print(f"✅ 报告已生成：{report_file}")` | 用户明确知道文件生成在哪 |
-| B. -h 示例结尾 | `epilog=...` + `RawDescriptionHelpFormatter` | `-h` 底部显示2条使用示例，换行正确 |
-| C. 未传--output默认名提示 | `if output_path is None: print(f"未指定 --output，使用默认文件名：{report_file}")` | 不传时告诉用户用了哪个默认文件名 |
-| +. 传了--output也提示 | `else: print(f"使用用户指定的文件名：{report_file}")` | 传了时也明确提示 |
+| 功能                      | 代码                                                                               | 效果                               |
+| ------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------- |
+| A. 报告生成路径提示       | `print(f"✅ 报告已生成：{report_file}")`                                           | 用户明确知道文件生成在哪           |
+| B. -h 示例结尾            | `epilog=...` + `RawDescriptionHelpFormatter`                                       | `-h` 底部显示2条使用示例，换行正确 |
+| C. 未传--output默认名提示 | `if output_path is None: print(f"未指定 --output，使用默认文件名：{report_file}")` | 不传时告诉用户用了哪个默认文件名   |
+| +. 传了--output也提示     | `else: print(f"使用用户指定的文件名：{report_file}")`                              | 传了时也明确提示                   |
 
 ### 边界测试（Done标准4/4全过）
 
-| # | 命令 | 实际结果 | 对应Done标准 |
-|---|------|---------|------------|
-| 1 | `python log_analyzer.py --file sample.log` | ✅ 生成 report_20260820.txt，内容正确（INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2） | Done标准第1条：`--file sample.log` 正常分析 |
-| 2 | `python log_analyzer.py --file sample.log --output abc_report.txt` | ✅ 生成 abc_report.txt，文件名正确，内容一致 | Done标准第2条：`--output` 指定输出文件名 |
-| 3 | `python log_analyzer.py`（不传任何参数） | ✅ argparse 自动报错：`error: the following arguments are required: --file` + 打印 usage 帮助信息（Terminal#99-102） | Done标准第3条：不传参数时打印使用说明 |
-| 4 | `python log_analyzer.py --file no_exists.log` | ✅ 不生成报告，打印"错误：文件 'no_exists.log' 不存在，请检查文件路径！"；返回空字典不崩溃（Terminal#108-111） | Done标准第4条：文件不存在时打印友好提示 |
+| # | 命令                                                               | 实际结果                                                                                                             | 对应Done标准                                |
+| -- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| 1 | `python log_analyzer.py --file sample.log`                         | ✅ 生成 report_20260820.txt，内容正确（INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2）                                  | Done标准第1条：`--file sample.log` 正常分析 |
+| 2 | `python log_analyzer.py --file sample.log --output abc_report.txt` | ✅ 生成 abc_report.txt，文件名正确，内容一致                                                                         | Done标准第2条：`--output` 指定输出文件名    |
+| 3 | `python log_analyzer.py`（不传任何参数）                           | ✅ argparse 自动报错：`error: the following arguments are required: --file` + 打印 usage 帮助信息（Terminal#99-102） | Done标准第3条：不传参数时打印使用说明       |
+| 4 | `python log_analyzer.py --file no_exists.log`                      | ✅ 不生成报告，打印"错误：文件 'no_exists.log' 不存在，请检查文件路径！"；返回空字典不崩溃（Terminal#108-111）       | Done标准第4条：文件不存在时打印友好提示     |
 
 ### 踩坑记录
 
@@ -803,6 +816,87 @@ c280a5c Day 3: 实现日志级别统计（字典计数）
 Day 6: 实现argparse命令行参数（--file/--output）（8f9865b）
 ````
 
+## 十、Day 7 笔记：代码重构整理（08-23）
+
+### 脚本一句话
+
+把塞在 `count_log_levels()` 一个95行大函数里的所有事，拆成6个职责单一的函数（read_log_lines/extract_level/count_levels/classify_errors/generate_report + 原有classify_error保留），`__main__`只负责argparse参数解析+调用链——拆前"一个函数塞一切"，拆后"6个函数各司其职，输出完全不变"。
+
+### Day 7 新增1个核心认知（函数职责单一）
+
+> Day 7 没有新增Python语法知识点，核心是**重构思想**：一个函数只做一件事、只接收一个输入、只返回一个输出，主函数只负责"串联"不调度细节。
+
+| 原则 | 说明 | 违反时的症状（Day 7实测） |
+|---|---|---|
+| **单一职责** | 一个函数只做一件事 | 旧 `count_log_levels()` 同时做读取+提取+统计+归类+报告，95行远超20-25行建议上限 |
+| **输入输出清晰** | 只接收需要的输入、只返回一个结果 | read_log_lines 第1轮塞了counter/error_counter/正则/归类，职责混乱 |
+| **不递归调自己** | `return read_log_lines(file_path)` 无限循环 | 第2轮递归调用崩溃 |
+| **容器在循环外创建** | `lines = []` 必须在循环前建一次 | 第3轮 for里 `[]` 每次建空列表丢弃，行没存进任何容器 |
+| **拆完删净旧调用** | `__main__` 里的旧函数调用要删掉 | 第6个坑：`count_log_levels(args.file, args.output)` 残留报错 |
+
+### Day 7 5个函数的最终版对照
+
+| # | 函数名                                                                         | 输入                       | 输出                                                    | 调用其他函数                           |
+| -- | ------------------------------------------------------------------------------ | -------------------------- | ------------------------------------------------------- | -------------------------------------- |
+| 1 | `read_log_lines(file_path)`                                                    | 文件路径字符串             | 行列表 `['...', '...', ...]`                            | 无                                     |
+| 2 | `extract_level(line)`                                                          | 单行字符串                 | 级别字符串 `'ERROR'/'WARNING'/'INFO'/'UNKNOWN'`         | `re.search()`                          |
+| 3 | `count_levels(lines)`                                                          | 行列表                     | counter字典 `{'ERROR': 10, 'WARNING': 4, ...}`          | `extract_level()`                      |
+| 4 | `classify_errors(lines)`                                                       | 行列表                     | error_counter字典 `{'网络错误': 5, '权限错误': 3, ...}` | `extract_level()` + `classify_error()` |
+| 5 | `generate_report(counter, error_counter, file_path, total_lines, output_path)` | 统计字典×2 + 路径×2 + 行数 | 无（副作用：写文件+打印）                               | `datetime.now()` + `open()`            |
+
+**调用链**：`read_log_lines` → `count_levels`（调用extract_level）→ `classify_errors`（调用extract_level+classify_error）→ `generate_report`
+
+### 记忆骨架（Day 7 在 Day 6 基础上重构的部分）
+
+````
+读取行列表 → read_log_lines(file_path) → lines          ← 从旧31-54行拆出
+提取级别   → extract_level(line) → level               ← 从旧35-40行拆出
+统计级别   → count_levels(lines) → counter字典          ← 调用 extract_level
+归类错误   → classify_errors(lines) → error_counter字典  ← 调用 extract_level + classify_error
+生成报告   → generate_report(counter, error_counter, 路径) ← 调用 datetime.now + open
+
+主流程     → if __name__ == '__main__':
+             lines = read_log_lines(args.file)
+             counter = count_levels(lines)
+             error_counter = classify_errors(lines)
+             generate_report(counter, error_counter, args.file, len(lines), args.output)
+````
+
+**调用链记忆**：读 → 统计 → 归类 → 报告，每个函数只往前走一步、只把结果交给下一个函数。
+
+### 关键认知纠正
+
+1. **重构是"拆分职责"不是"改写逻辑"**：输出必须和重构前完全一致（INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2），一致性靠回归测试验证，不是靠肉眼
+2. **函数命名即职责**：`read_`/`extract_`/`count_`/`classify_`/`generate_` 前缀说明"这个函数负责读/提/计/归/写"，命名对不上说明塞错了东西
+3. **缩进是 Python 的生命线**：if/for/with 内比外层多4格（7格/11格都是不标准写法），错误缩进不报错但风格错，靠 `python -m py_compile` 或肉眼逐行核对
+4. **拆完必须删净旧引用**：函数拆走了，旧名字（`count_log_levels`）就没意义了，`__main__` 里的旧调用是第一个要清理的残留
+
+### 创阶段1项增强（重构附带修复）
+
+| 增强 | 说明 |
+|---|---|
+| print输出格式统一 | 删掉 `classify_error` 的调试输出（`print("匹配到关键词：xxx")`）+ 去掉 `classify_errors` 的 `end=''`，10条归类从"粘在一行"变成"各占一行" |
+
+### Day 7 边界回归测试（4/4全过）
+
+| # | 命令                                                                | 实际结果                                                                    | 对应Done标准                     |
+| -- | ------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------- |
+| 1 | `python log_analyzer.py --file sample.log`                          | ✅ 输出INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2 + 生成report_20260823.txt | Done标准第1条：≥5个函数 ✅       |
+| 2 | `python log_analyzer.py --file sample.log --output abc_report2.txt` | ✅ 生成abc_report2.txt，文件名正确内容一致                                  | Done标准第2条：主程序逻辑清晰 ✅ |
+| 3 | `python log_analyzer.py`（不传参数）                                | ✅ argparse自动报错 `--file is required` + 打印usage                        | Done标准第3条：重构后结果一致 ✅ |
+| 4 | `python log_analyzer.py --file no_exists.log`                       | ✅ 打印"错误：文件'no_exists.log'不存在"，不崩溃不生成报告                  | Done标准第4条：每函数有注释 ✅   |
+
+### Day 7 踩坑记录（完整，按发生顺序）
+
+1. **递归调用误写**：`return read_log_lines(file_path)` 意思是"调用自己再返回结果"，会无限循环崩溃；正确是 `return lines`（返回函数里存好的列表变量）
+2. **空列表创建又丢弃**：`for line in f: []` 每次循环创建一个无名空列表然后扔掉，20次循环20个空列表，行没存进任何容器
+3. **变量写在docstring里当注释**：`lines = []` 写在三引号 `"""` 内部，被Python当成字符串注释不执行，导致后续 `lines.append()` 报 `NameError`
+4. **if块内缩进不标准**：`level = ...` 写在 `if` 下只有7格空格，标准是8格（if下多4格）；`classify_errors`里 `if ERROR:` 下只有11格，标准是12格。功能不受影响但风格不标准
+5. **一行两个表达式**：`total_line = classify_error(lines), generate_report(...)` 一行写了赋值+函数调用两个表达式，语法错误
+6. **旧函数名残留调用**：拆完5个函数后 `__main__` 里还留着 `count_log_levels(args.file, args.output)` 调用，这个函数已不存在
+7. **`count_log_levels`** **函数参数命名**：旧函数参数是 `output_path=None`（可选默认值），拆到 `generate_report` 后参数变成 `output_path`（无默认值，因为 **main** 传 `args.output`，可能为 None，在函数内部判断 `if output_path is None`）
+8. **print输出格式不一致**：`classify_error` 里的 `print("匹配到关键词：xxx")` 带换行，`classify_errors` 里的 `print(f' → {category}', end='')` 不带换行，两条输出交替出现时粘在一行；修复：删掉 `classify_error` 的调试输出 + 去掉 `end=''` 让每条归类独占一行
+
 ### Day 7 收尾四问
 
 1. **今天产出了什么？** → 代码重构整理：把 `count_log_levels()` 一个95行的大函数拆成6个职责单一的函数（read_log_lines/extract_level/count_levels/classify_errors/generate_report + 原有classify_error保留），`__main__`只负责argparse参数解析+5步调用链，主程序逻辑从"一个函数塞一切"变成"调用函数→处理数据→输出结果"三步清晰流程
@@ -814,117 +908,109 @@ Day 6: 实现argparse命令行参数（--file/--output）（8f9865b）
 
 > 重构的本质不是改写代码而是**拆分职责**：一个函数只做一件事、只接收一个输入、只返回一个输出，主函数只负责"串联"不调度细节——拆前95行一个函数，拆后6个函数各司其职，输出完全不变。
 
-### Day 7 踩坑记录（完整）
-
-1. **递归调用误写**：`return read_log_lines(file_path)` 意思是"调用自己再返回结果"，会无限循环崩溃；正确是 `return lines`（返回函数里存好的列表变量）
-2. **空列表创建又丢弃**：`for line in f: []` 每次循环创建一个无名空列表然后扔掉，20次循环20个空列表，行没存进任何容器
-3. **变量写在docstring里当注释**：`lines = []` 写在三引号 `"""` 内部，被Python当成字符串注释不执行，导致后续 `lines.append()` 报 `NameError`
-4. **if块内缩进不标准**：`level = ...` 写在 `if` 下只有7格空格，标准是8格（if下多4格）；`classify_errors`里 `if ERROR:` 下只有11格，标准是12格。功能不受影响但风格不标准
-5. **一行两个表达式**：`total_line = classify_error(lines), generate_report(...)` 一行写了赋值+函数调用两个表达式，语法错误
-6. **旧函数名残留调用**：拆完5个函数后 `__main__` 里还留着 `count_log_levels(args.file, args.output)` 调用，这个函数已不存在
-7. **`count_log_levels`函数参数命名**：旧函数参数是 `output_path=None`（可选默认值），拆到 `generate_report` 后参数变成 `output_path`（无默认值，因为 __main__ 传 `args.output`，可能为 None，在函数内部判断 `if output_path is None`）
-8. **print输出格式不一致**：`classify_error` 里的 `print("匹配到关键词：xxx")` 带换行，`classify_errors` 里的 `print(f' → {category}', end='')` 不带换行，两条输出交替出现时粘在一行；修复：删掉 `classify_error` 的调试输出 + 去掉 `end=''` 让每条归类独占一行
-
-### Day 7 5个函数的最终版对照
-
-| # | 函数名 | 输入 | 输出 | 调用其他函数 |
-|---|---|---|---|---|
-| 1 | `read_log_lines(file_path)` | 文件路径字符串 | 行列表 `['...', '...', ...]` | 无 |
-| 2 | `extract_level(line)` | 单行字符串 | 级别字符串 `'ERROR'/'WARNING'/'INFO'/'UNKNOWN'` | `re.search()` |
-| 3 | `count_levels(lines)` | 行列表 | counter字典 `{'ERROR': 10, 'WARNING': 4, ...}` | `extract_level()` |
-| 4 | `classify_errors(lines)` | 行列表 | error_counter字典 `{'网络错误': 5, '权限错误': 3, ...}` | `extract_level()` + `classify_error()` |
-| 5 | `generate_report(counter, error_counter, file_path, total_lines, output_path)` | 统计字典×2 + 路径×2 + 行数 | 无（副作用：写文件+打印） | `datetime.now()` + `open()` |
-
-**调用链**：`read_log_lines` → `count_levels`（调用extract_level）→ `classify_errors`（调用extract_level+classify_error）→ `generate_report`
-
-### Day 7 边界回归测试（4/4全过）
-
-| # | 命令 | 实际结果 | 对应Done标准 |
-|---|------|---------|------------|
-| 1 | `python log_analyzer.py --file sample.log` | ✅ 输出INFO6/WARNING4/ERROR10 + 网络5/权限3/服务2 + 生成report_20260823.txt | Done标准第1条：≥5个函数 ✅ |
-| 2 | `python log_analyzer.py --file sample.log --output abc_report2.txt` | ✅ 生成abc_report2.txt，文件名正确内容一致 | Done标准第2条：主程序逻辑清晰 ✅ |
-| 3 | `python log_analyzer.py`（不传参数） | ✅ argparse自动报错 `--file is required` + 打印usage | Done标准第3条：重构后结果一致 ✅ |
-| 4 | `python log_analyzer.py --file no_exists.log` | ✅ 打印"错误：文件'no_exists.log'不存在"，不崩溃不生成报告 | Done标准第4条：每函数有注释 ✅ |
-
 ### Git 提交
 
 ````
-Day 7: 代码重构，封装函数
+Day 7: 代码重构，封装函数（ced710f）
 ````
 
-### Day 8 笔记：批量多文件处理（08-29）
 
-**脚本一句话**：`log_analyzer.py` 从"单文件分析"升级为"批量分析"——`--dir` 指定目录 → `glob` 找出所有 .log → 逐个走 Day 7 调用链（读→统计→归类）→ 元组打包 → 生成汇总报告（每文件一段 + 所有文件总计）
 
-#### Day 8 新增6个知识点（逐词注释）
+## 十一、Day 8 笔记：批量多文件处理（08-29）
 
-1. **`glob.glob('模式')`** — 全局匹配：返回所有匹配文件的完整路径列表（如 `glob.glob('./logs/*.log')` → `['./logs/app1.log', './logs/app2.log']`）。**大陷阱**：目录不存在时**静默返回 `[]` 不报错**，无法区分"目录存在但没log"和"目录不存在"——必须先用 `os.path.isdir` 检查
+### 脚本一句话
+
+`log_analyzer.py` 从"单文件分析"升级为"批量分析"——`--dir` 指定目录 → `glob` 找出所有 .log → 逐个走 Day 7 调用链（读→统计→归类）→ 元组打包 → 生成汇总报告（每文件一段 + 所有文件总计）
+
+### Day 8 新增6个知识点（逐词注释）
+
+1. **`glob.glob('模式')`** — 全局匹配：返回所有匹配文件的完整路径列表（如 `glob.glob('./logs/*.log')` → `['./logs/app1.log', './logs/app2.log']`）。**大陷阱**：目录不存在时**静默返回** **`[]`** **不报错**，无法区分"目录存在但没log"和"目录不存在"——必须先用 `os.path.isdir` 检查
 2. **`os.path.isdir(路径)`** — 目录存在→True，不存在或是文件→False。配合 `os.path.join(dir_path, '*.log')` 拼接路径（自动处理 `/`，Windows/Linux 都兼容）
 3. **`parser.error('消息')`** — argparse 自带的报错+usage 输出：打印 `error: 消息` + 完整 usage，退出码2。触发时机由自己控制（Day 6 的 `required=True` 是 argparse 替你拦）
 4. **相邻字符串自动拼接** — Python 把挨着写的多个字符串常量**无缝粘成一个**，粘的时候**不会自动加换行**。epilog 里两行示例漏写结尾 `\n` 就会挤在同一行
 5. **with 块作用域** — 缩进即作用域：缩进退回 `with` 行同级时，文件句柄自动关闭，再 `f.write` 报 `ValueError: I/O operation on closed file`
 6. **元组打包/解包** — `batch_results.append((log_file, counter, error_counter, len(lines)))` 小括号包4样东西；`for file_path, counter, error_counter, total_lines in batch_results:` 一行解包4个变量，一一对应
 
-#### Day 8 新增2个函数（对照）
+### Day 8 新增2个函数（对照）
 
-| # | 函数名 | 输入 | 输出 | 调用其他函数 |
-|---|---|---|---|---|
-| 1 | `find_log_files(dir_path)` | 目录路径 | `.log` 文件路径列表（目录不存在返回 `[]` 并打印提示） | `os.path.isdir()` + `glob.glob()` |
-| 2 | `generate_batch_report(batch_results, output_path)` | 打包列表（每元素4元组）+ 输出路径 | 无（副作用：写汇总报告） | `datetime.now()` + `open()` |
+| # | 函数名                                              | 输入                              | 输出                                                  | 调用其他函数                      |
+| -- | --------------------------------------------------- | --------------------------------- | ----------------------------------------------------- | --------------------------------- |
+| 1 | `find_log_files(dir_path)`                          | 目录路径                          | `.log` 文件路径列表（目录不存在返回 `[]` 并打印提示） | `os.path.isdir()` + `glob.glob()` |
+| 2 | `generate_batch_report(batch_results, output_path)` | 打包列表（每元素4元组）+ 输出路径 | 无（副作用：写汇总报告）                              | `datetime.now()` + `open()`       |
 
 **调用链**：`--dir` 分支 → `find_log_files` → for 循环：`read_log_lines` → `count_levels` → `classify_errors` → 元组打包进 `batch_results` → 循环外 `generate_batch_report`（每文件一段 + 最后总计段）
 
-#### Day 8 结构改动（argparse + 主入口）
+### Day 8 结构改动（argparse + 主入口）
 
 1. `--file` 去掉 `required=True`，新增 `--dir` 参数（两参数独立登记，各有各的 help）
 2. 主入口两条**平行分支**：`if args.dir:` 走批量（新逻辑）→ `else:` 走单文件（Day 7 原调用链一行不改）
 3. 都没传 → `parser.error('必须指定 --file 或 --dir 其中一个')`
-4. **默认文件名都加了秒级时间戳 `%H%M%S`**（创阶段增强，比"只改批量名"更彻底）：单文件 `report_时间戳.txt`、批量 `report_batch_时间戳.txt`，任何两次运行互不覆盖
+4. **默认文件名都加了秒级时间戳** **`%H%M%S`** （创阶段增强，比"只改批量名"更彻底）：单文件 `report_时间戳.txt`、批量 `report_batch_时间戳.txt`，任何两次运行互不覆盖
 5. `--output` help 改为通用描述"不传则用默认文件名"（不再写死 batch 前缀）
 
-#### Day 8 创阶段增强
+### 记忆骨架（Day 8 在 Day 7 基础上新增的部分）
 
-| # | 增强 | 说明 |
-|---|---|---|
-| A | 默认文件名秒级时间戳 | 解决"批量报告被单文件运行覆盖"冲突 |
+````
+模式分支   → if args.dir:（批量）/ else:（单文件Day7老路）         ← 新：两条平行分支
+找文件     → find_log_files(dir) → .log路径列表                    ← 新：os.path.isdir + glob.glob
+批量循环   → for 每个文件：read_log_lines → count_levels → classify_errors   ← 复用Day7三函数
+打包       → batch_results.append((文件, counter, error_counter, 行数))       ← 新：元组4元组
+汇总报告   → generate_batch_report(batch_results) → 每文件一段 + 总计段      ← 新
+````
+
+**调用链记忆**：`--dir` → `find_log_files` → for循环（读→统计→归类→元组打包）→ 循环外 `generate_batch_report`——"循环内收集、循环外输出"让总计段只出现一次。
+
+### 关键认知纠正
+
+1. **两种模式必须两条平行分支**：`if args.dir:` 批量 / `else:` 单文件，各自只用各自参数（`args.dir`/`args.file`），消灭中转变量——否则传 `--file` 被 `isdir` 劫持、传 `--dir` 把目录塞给 `read_log_lines` 崩溃
+2. **`glob` 目录不存在时静默返回 `[]`**：无法区分"目录存在但没log"和"目录不存在"，必须先用 `os.path.isdir` 判断，不能靠 glob 报错
+3. **缩进即作用域（缩进标尺）**：函数体4格 / with内8格 / for体12格；`f.write` 只要还拿着 `f` 就必须在 with 内，总计段缩进要和 for 对齐
+4. **`.get()` 键名写错不报错只返回默认值**：`error_counter` 的键是'网络错误'等类别名**没有'ERROR'键**，键名必须与写入时一致；"写小节"用本文件 `error_counter`，"累加"用 `total_error`
+5. **目录不存在用返回 `[]` 替代 `exit(1)` 硬退**：风格与 `read_log_lines` 一致，主块判空继续
+
+### Day 8 创阶段增强
+
+| # | 增强                         | 说明                                                                                   |
+| -- | ---------------------------- | -------------------------------------------------------------------------------------- |
+| A | 默认文件名秒级时间戳         | 解决"批量报告被单文件运行覆盖"冲突                                                     |
 | B | 汇总报告末尾"所有文件总计"段 | 循环内顺手累加 `total_counter`/`total_error` 两个字典，循环外一次性输出总行数+错误总计 |
 
-#### Day 8 踩坑记录（完整，按发生顺序）
+### Day 8 最终验证（边界/回归测试全过）
 
-1. **`--file` 与 `--dir` 写成别名**：`parser.add_argument('--file', '--dir')` 是**一个参数**（--dir 只是 --file 的别名），值都存进 `args.file`，`args.dir` 不存在 → `AttributeError`。修法：拆成两次独立 `add_argument`
-2. **缺 `import os`**：用了 `os.path.isdir()` 没导入 → `NameError`
-3. **缩进掉出 `__main__` 块**：第124行起顶格，代码脱离 `if __name__ == '__main__':` 保护
+| # | 命令                                          | 实际结果                                                                                                                                                                                                 |
+| -- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | `python log_analyzer.py --dir ./logs/`        | ✅ 批量报告 report_batch_时间戳.txt：app1（INFO2/WARNING2/ERROR2，网络1/权限1）+ app2（INFO2/WARNING2/ERROR1，服务异常**1个**）+ 总计段只在最末尾出现1次（总行数11、错误总计3）；readme.txt 被 glob 过滤 |
+| 2 | `python log_analyzer.py --file sample.log`    | ✅ 单文件报告 report_时间戳.txt：INFO6/WARNING4/ERROR10，网络5/权限3/服务2，**不带 batch 前缀**，Day 7 功能完整保留                                                                                      |
+| 3 | `python log_analyzer.py`（不传参数）          | ✅ 友好报错"必须指定 --file 或 --dir 其中一个" + usage                                                                                                                                                   |
+| 4 | `python log_analyzer.py --dir ./no_such_dir/` | ✅ 友好提示"目录 './no_such_dir/' 不存在"，不崩溃                                                                                                                                                        |
+
+### Day 8 踩坑记录（完整，按发生顺序）
+
+1. **`--file`** **与** **`--dir`** **写成别名**：`parser.add_argument('--file', '--dir')` 是**一个参数**（--dir 只是 --file 的别名），值都存进 `args.file`，`args.dir` 不存在 → `AttributeError`。修法：拆成两次独立 `add_argument`
+2. **缺** **`import os`** ：用了 `os.path.isdir()` 没导入 → `NameError`
+3. **缩进掉出** **`__main__`** **块**：第124行起顶格，代码脱离 `if __name__ == '__main__':` 保护
 4. **分支嵌套错位（最深坑之一）**：单文件/批量两种模式挤进一条路径，`dir_path` 一个变量装两种东西 → 传 `--file` 被 `isdir` 拦截报"目录不存在"（它检查的是文件！），传 `--dir` 时拿到文件列表却没用、把目录塞给 `read_log_lines` → `IsADirectoryError` 崩溃。修法：**两条平行分支** `if args.dir:` / `else:`，各自只用各自的参数（`args.dir`/`args.file`），消灭中转变量
-5. **中文引号 `‘’`**：违反代码规范第3条（必须英文半角）
-6. **`exit(1)` 替代**：目录不存在用 `exit(1)` 硬退，与 `read_log_lines` 的"打印提示+返回 `[]`"风格不一致；`find_log_files` 统一为返回 `[]` + 主块判空
+5. **中文引号** **`‘’`** ：违反代码规范第3条（必须英文半角）
+6. **`exit(1)`** **替代**：目录不存在用 `exit(1)` 硬退，与 `read_log_lines` 的"打印提示+返回 `[]`"风格不一致；`find_log_files` 统一为返回 `[]` + 主块判空
 7. **epilog 相邻字符串自动拼接**：第2行示例结尾漏 `\n`，`-h` 里3条示例挤在一行
 8. **总计段位置错**：`f.write(总计)` 缩进在 for 循环体内 → 每个文件后面都跟一段"总计"，只显示该文件自己的数字。修法：总计段缩进和 `for` 对齐
-9. **`.get('ERROR', 0)` 键名陷阱（最深坑之一）**：`error_counter` 的键是 `'网络错误'`/`'权限错误'`/`'服务异常'`/`'其他错误'`，**没有 `'ERROR'` 键**；`.get()` 键名写错**不报错**，静默返回默认值0 → "问题总计"永远把错误算成0。教训：**字典键名必须与写入时一致**，别凭记忆猜
+9. **`.get('ERROR', 0)`** **键名陷阱（最深坑之一）**：`error_counter` 的键是 `'网络错误'`/`'权限错误'`/`'服务异常'`/`'其他错误'`，**没有** **`'ERROR'`** **键**；`.get()` 键名写错**不报错**，静默返回默认值0 → "问题总计"永远把错误算成0。教训：**字典键名必须与写入时一致**，别凭记忆猜
 10. **小节里写错字典（隐蔽，不崩溃）**：app2 的"错误分类统计"误写成累计字典 `total_error`，显示"服务异常：2个"（1+1）实际是1个——数字悄悄变大比崩溃更危险。"写小节"用 `error_counter`，"累加"用 `total_error`
-11. **with 块缩进掉出去（×2次）**：`ValueError: I/O operation on closed file`——第一次崩在循环体 `f.write`（4格掉出 with），修好后再崩在总计段（也是4格），最后 print 也掉进循环体导致"✅已生成"打印两次。根因：**只要还拿着 `f` 写东西，缩进就必须在 `with` 肚子里**
+11. **with 块缩进掉出去（×2次）**：`ValueError: I/O operation on closed file`——第一次崩在循环体 `f.write`（4格掉出 with），修好后再崩在总计段（也是4格），最后 print 也掉进循环体导致"✅已生成"打印两次。根因：**只要还拿着** **`f`** **写东西，缩进就必须在** **`with`** **肚子里**
 12. **总计段缩进加过头**：要求加4格加到8格，实际加到12格又掉进 for 循环体 → 总计段+print 各执行2次。**缩进标尺**：函数体4格 / with 内8格 / for 体12格
 
-#### Day 8 最终验证（边界/回归测试全过）
-
-| # | 命令 | 实际结果 |
-|---|---|---|
-| 1 | `python log_analyzer.py --dir ./logs/` | ✅ 批量报告 report_batch_时间戳.txt：app1（INFO2/WARNING2/ERROR2，网络1/权限1）+ app2（INFO2/WARNING2/ERROR1，服务异常**1个**）+ 总计段只在最末尾出现1次（总行数11、错误总计3）；readme.txt 被 glob 过滤 |
-| 2 | `python log_analyzer.py --file sample.log` | ✅ 单文件报告 report_时间戳.txt：INFO6/WARNING4/ERROR10，网络5/权限3/服务2，**不带 batch 前缀**，Day 7 功能完整保留 |
-| 3 | `python log_analyzer.py`（不传参数） | ✅ 友好报错"必须指定 --file 或 --dir 其中一个" + usage |
-| 4 | `python log_analyzer.py --dir ./no_such_dir/` | ✅ 友好提示"目录 './no_such_dir/' 不存在"，不崩溃 |
-
-#### Day 8 收尾四问
+### Day 8 收尾四问
 
 1. **今天产出了什么？** → 新增2个函数（`find_log_files` 目录查找、`generate_batch_report` 汇总报告）；argparse 改造（`--file` 去 required + 新增 `--dir` + 两条平行分支）；批量模式 for 循环复用 Day 7 四函数链 + 元组打包累加总计；默认文件名加秒级时间戳解决覆盖冲突；测试数据 logs/app1.log、app2.log、readme.txt（干扰项验证 glob 过滤）
 2. **跑通了吗？** → 4条验证全过（批量/单文件/不传参/目录不存在）；批量报告数字全对（app2 服务异常1个、总计 11行/3错误）；单文件报告与 Day 7 结果完全一致，证明回归无破坏
 3. **卡在哪了？** → ①**分支嵌套错位**：两种模式挤一条路径、一个变量装两种东西，--file 被 isdir 劫持、--dir 读目录崩溃；②**with 块缩进掉出去×2次**：f.write 掉出 with 块报 `I/O operation on closed file`（先崩循环体、再崩总计段），缩进加过头又让总计段+print 执行两次；③**`.get('ERROR', 0)` 键名陷阱**：error_counter 没有 'ERROR' 键，.get() 静默返回0不报错，"问题总计"永远少算错误
 4. **到布卢姆第几层了？** → 应用层（argparse 多模式互斥分支、glob+isdir 目录遍历独立完成）✅；分析层（看懂元组打包→解包→两字典累加的数据流向，能把总计段放到循环外）✅；评价层（连续两次缩进错位后，能看着报错行号画出缩进地图、口头定位哪段掉出 with，不再靠试错）✅；创造层（默认文件名加秒级时间戳 + 汇总报告总计段增强，比"只改批量名"的建议更彻底）✅
 
-#### 一句话说清今天最重要的概念
+### 一句话说清今天最重要的概念
 
 > 批量处理的核心不是"循环"本身，而是**两条平行分支 + 一个数据容器**：单文件是旧逻辑（else 原样保留），批量是新逻辑（if 打头）——新旧互不污染；每个文件的结果打成元组存进列表，循环外一次性写汇总——"循环内收集、循环外输出"让总计段天然只出现一次。
 
-#### Git 提交
+### Git 提交
 
 ````
 Day 8: 批量多文件处理（5122d94）
@@ -953,16 +1039,16 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 
 - **第一周复盘延迟13天完成**：计划08-10写，实际08-23补写。原因：08-09~08-20期间驻场工作忙，周末冲刺时间被占用，复盘被挤到Day 7执行时一起做
 - **Day 5完成时间严重滞后（计划08-08，实际08-18）**：间隔10天。原因：中间08-10~08-17无学习记录，属"断档"，按规则"断了从断点继续"执行，未从Day 1重来
-- **Day 2的 `re.IGNORECASE` 补课（提交6e27553）**：实验手册Day 2要求"忽略大小写"，实际Day 2没做，08-09补上。算完成但不算一次到位
+- **Day 2的** **`re.IGNORECASE`** **补课（提交6e27553）**：实验手册Day 2要求"忽略大小写"，实际Day 2没做，08-09补上。算完成但不算一次到位
 
 ### 学到了什么新技能？
 
-- **`with open()` 上下文管理**：自动管理文件开关，不用手动 `close()`；配合 `try/except FileNotFoundError` 实现友好错误处理
-- **`re.search()` 正则表达式**：搜索模式、`|` 表示"或"、`match.group()` 取匹配文字、`re.IGNORECASE` 忽略大小写；没找到返回 None（不是 UNKNOWN，UNKNOWN 是 else 分支贴的标签）
-- **字典计数公式 `dict[key] = dict.get(key, 0) + 1`**：有则+1，没有从0记1，`get()` 的0不能省否则KeyError
-- **`return` 在 for 循环里的"命中即停"**：`classify_error` 函数用 `return category` 写在 for 内部，命中第一个关键词立即结束函数，不继续匹配后面的类别
-- **`datetime.now().strftime()` 格式化时间**：`%Y%m%d` 拼文件名（如20260823）、`%Y-%m-%d %H:%M:%S` 拼报告内容
-- **`open('w')` + `f.write()` 写文件**：与 `open('r')` 对称，`write` 不自动换行必须手动加 `\n`，文件不存在自动创建、已存在会覆盖
+- **`with open()`** **上下文管理**：自动管理文件开关，不用手动 `close()`；配合 `try/except FileNotFoundError` 实现友好错误处理
+- **`re.search()`** **正则表达式**：搜索模式、`|` 表示"或"、`match.group()` 取匹配文字、`re.IGNORECASE` 忽略大小写；没找到返回 None（不是 UNKNOWN，UNKNOWN 是 else 分支贴的标签）
+- **字典计数公式** **`dict[key] = dict.get(key, 0) + 1`** ：有则+1，没有从0记1，`get()` 的0不能省否则KeyError
+- **`return`** **在 for 循环里的"命中即停"**：`classify_error` 函数用 `return category` 写在 for 内部，命中第一个关键词立即结束函数，不继续匹配后面的类别
+- **`datetime.now().strftime()`** **格式化时间**：`%Y%m%d` 拼文件名（如20260823）、`%Y-%m-%d %H:%M:%S` 拼报告内容
+- **`open('w')`** **+** **`f.write()`** **写文件**：与 `open('r')` 对称，`write` 不自动换行必须手动加 `\n`，文件不存在自动创建、已存在会覆盖
 - **argparse 命令行参数**：命名参数 `--file` 取属性时去掉双横线（`args.file`），可选参数 `--output` 不传值是 `None`，函数默认参数用 `None` 不用 `''`；执行顺序严格"创→登(全)→解→用"
 - **函数拆分与重构（单一职责原则）**：一个函数只做一件事、只接收一个输入、只返回一个输出；拆前95行一个函数，拆后6个函数各司其职，输出完全不变；`__main__` 只负责"串联"不调度细节
 
@@ -972,14 +1058,14 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 - **坑2：FileNotFoundError 大小写敏感** → 解决：F、N、F 三个大写，写错就报 `NameError`
 - **坑3：中文输入法导致全角符号** → 解决：写代码前切英文输入法，写完后检查括号/引号是否半角
 - **坑4：re.search 没找到返回 None 不是 UNKNOWN** → 解决：在 else 分支手动 `level = 'UNKNOWN'` 贴标签
-- **坑5：`counter.get(level, 0)` 的 0 不能省** → 解决：省了后键不存在报 `KeyError`，用 `.get()` 的目的就是提供默认值
-- **坑6：小写 error 被 IGNORECASE 识别为级别，但 `if level == 'ERROR'` 大小写敏感漏归类** → 解决：加 `level = match.group().upper()` 统一大写（改代码不是改测试数据）
-- **坑7：报告代码缩进丢失，`return` 跑到模块顶层** → 解决：整段统一4空格缩进，报 `'return' outside function` 时查 `return` 是否在 `def` 块内
-- **坑8：argparse 登记参数前就用 `args.file` → NameError** → 解决：严格按"创→登(全)→解→用"顺序，`args = parser.parse_args()` 必须在使用 `args` 之前
-- **坑9：递归调用误写 `return read_log_lines(file_path)`** → 解决：改成 `return lines`（返回函数里存好的列表变量）
-- **坑10：`lines = []` 写在 docstring 三引号里当注释** → 解决：三引号内全部内容都是字符串不执行，变量创建必须在三引号外面
-- **坑11：`for line in f: []` 每次创建空列表被丢弃** → 解决：函数开头先创建有名字的列表 `lines = []`，循环里 `lines.append(line)` 逐行添加
-- **坑12：一行写两个表达式 `total_line = classify_error(lines), generate_report(...)` 语法错** → 解决：拆成两行独立语句
+- **坑5：****`counter.get(level, 0)`** **的 0 不能省** → 解决：省了后键不存在报 `KeyError`，用 `.get()` 的目的就是提供默认值
+- **坑6：小写 error 被 IGNORECASE 识别为级别，但** **`if level == 'ERROR'`** **大小写敏感漏归类** → 解决：加 `level = match.group().upper()` 统一大写（改代码不是改测试数据）
+- **坑7：报告代码缩进丢失，****`return`** **跑到模块顶层** → 解决：整段统一4空格缩进，报 `'return' outside function` 时查 `return` 是否在 `def` 块内
+- **坑8：argparse 登记参数前就用** **`args.file`** **→ NameError** → 解决：严格按"创→登(全)→解→用"顺序，`args = parser.parse_args()` 必须在使用 `args` 之前
+- **坑9：递归调用误写** **`return read_log_lines(file_path)`** → 解决：改成 `return lines`（返回函数里存好的列表变量）
+- **坑10：****`lines = []`** **写在 docstring 三引号里当注释** → 解决：三引号内全部内容都是字符串不执行，变量创建必须在三引号外面
+- **坑11：****`for line in f: []`** **每次创建空列表被丢弃** → 解决：函数开头先创建有名字的列表 `lines = []`，循环里 `lines.append(line)` 逐行添加
+- **坑12：一行写两个表达式** **`total_line = classify_error(lines), generate_report(...)`** **语法错** → 解决：拆成两行独立语句
 
 ### 下周需要调整什么？
 
@@ -1004,32 +1090,32 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 
 ### 本周学习数据统计
 
-| 指标 | 数据 |
-|------|------|
-| 学习时长 | 约 21 小时（7个Day × 平均3小时/天，含迭代调试时间） |
-| 完成的Day数 | 7 / 7 |
+| 指标             | 数据                                                                                                                                                                                                      |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 学习时长         | 约 21 小时（7个Day × 平均3小时/天，含迭代调试时间）                                                                                                                                                       |
+| 完成的Day数      | 7 / 7                                                                                                                                                                                                     |
 | 新学Python知识点 | 20 个（with open / try-except / enumerate / re.search / match.group / counter字典计数 / return/for / CATEGORIES映射 / .lower() / datetime / f.write / argparse / 函数定义/调用/return / 函数拆分重构 等） |
-| 卡点记录条数 | 12 条（见上"遇到了什么坑"完整列表） |
-| GitHub提交次数 | 8 次（含今日提交后共9次） |
+| 卡点记录条数     | 12 条（见上"遇到了什么坑"完整列表）                                                                                                                                                                       |
+| GitHub提交次数   | 8 次（含今日提交后共9次）                                                                                                                                                                                 |
 
 ### 成品1进度总览（更新）
 
-| Day | 内容 | 状态 |
-|-----|------|------|
-| Day 1 | 日志读取 + 打印 + 友好提示 | ✅ |
-| Day 2 | 正则提取级别 + DEBUG扩展 + re.IGNORECASE | ✅ |
-| Day 3 | 字典统计级别 | ✅ |
-| Day 4 | 按类型归类错误 | ✅ |
-| Day 5 | 生成文本报告（txt格式） | ✅ |
-| Day 6 | 命令行参数（--file/--output + argparse） | ✅ |
-| **Day 7** | **代码重构整理（6个函数/主函数结构）** | **✅（今日完成）** |
-| **Day 8** | **批量处理多个日志文件（--dir/glob/汇总报告）** | **✅（今日完成）** |
-| **Day 9** | **时间范围过滤功能（--start/--end）** | **✅（今日完成）** |
-| **Day 10** | **HTML格式报告输出（--format）** | **✅（今日完成）** |
-| Day 11 | 高频错误检测功能 | ⏳ 未开始 |
-| Day 12 | 真实日志文件测试 | ⏳ 未开始 |
-| Day 13 | README项目说明文档 | ⏳ 未开始 |
-| Day 14 | 成品1收尾 + 推送GitHub | ⏳ 未开始 |
+| Day        | 内容                                            | 状态               |
+| ---------- | ----------------------------------------------- | ------------------ |
+| Day 1      | 日志读取 + 打印 + 友好提示                      | ✅                 |
+| Day 2      | 正则提取级别 + DEBUG扩展 + re.IGNORECASE        | ✅                 |
+| Day 3      | 字典统计级别                                    | ✅                 |
+| Day 4      | 按类型归类错误                                  | ✅                 |
+| Day 5      | 生成文本报告（txt格式）                         | ✅                 |
+| Day 6      | 命令行参数（--file/--output + argparse）        | ✅                 |
+| **Day 7**  | **代码重构整理（6个函数/主函数结构）**          | **✅（今日完成）** |
+| **Day 8**  | **批量处理多个日志文件（--dir/glob/汇总报告）** | **✅（今日完成）** |
+| **Day 9**  | **时间范围过滤功能（--start/--end）**           | **✅（今日完成）** |
+| **Day 10** | **HTML格式报告输出（--format）**                | **✅（今日完成）** |
+| Day 11     | 高频错误检测功能                                | ⏳ 未开始          |
+| Day 12     | 真实日志文件测试                                | ⏳ 未开始          |
+| Day 13     | README项目说明文档                              | ⏳ 未开始          |
+| Day 14     | 成品1收尾 + 推送GitHub                          | ⏳ 未开始          |
 
 > **当前状态**：成品1 Day 1-10 全部完成 ✅。下一步进入 Day 11（高频错误检测），第二周剩余：Day 11-14（高频检测/真实测试/README/推送）。
 
@@ -1037,13 +1123,13 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 
 成品1从"95行一个函数"重构为"6个职责单一的函数"，与RAG从Naive到Agentic的进化是**同一个底层逻辑**：
 
-| 成品1（代码层面） | RAG（系统层面） |
-|---|---|
+| 成品1（代码层面）                            | RAG（系统层面）                                |
+| -------------------------------------------- | ---------------------------------------------- |
 | 一个函数塞所有事（读取/提取/统计/归类/报告） | 一个Naive RAG管道（切块/向量化/单次TopK/生成） |
-| 拆成6个职责单一的函数 | 拆成多专家Agent各司其职 |
-| `__main__`只负责串联5步调用链 | 主控Agent只负责意图识别+路由分发 |
-| 拆前功能不变，拆后更易维护/测试/迭代 | Naive RAG→Agentic RAG后准确率提升，幻觉可控 |
-| **单一职责原则** = 每个函数只做一件事 | **单一职责** = 每个Agent只处理一类业务 |
+| 拆成6个职责单一的函数                        | 拆成多专家Agent各司其职                        |
+| `__main__`只负责串联5步调用链                | 主控Agent只负责意图识别+路由分发               |
+| 拆前功能不变，拆后更易维护/测试/迭代         | Naive RAG→Agentic RAG后准确率提升，幻觉可控    |
+| **单一职责原则** = 每个函数只做一件事        | **单一职责** = 每个Agent只处理一类业务         |
 
 **为什么企业要"一个主控+多个专家"而不是"一个万能Agent"？理由和拆函数完全一样**：
 
@@ -1053,39 +1139,41 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 
 **成品1的"5步调用链"与RAG Agentic架构的对应**：
 
-| 成品1调用链 | RAG Agentic架构 |
-|---|---|
-| `read_log_lines()` | 主控Agent：接收请求，路由分发 |
-| `extract_level()` + `count_levels()` | 专家Agent（统计类）：执行具体任务 |
-| `classify_errors()` | 专家Agent（分类类）：执行具体任务 |
-| `generate_report()` | 专家Agent（输出类）：生成结果 |
-| `__main__`的`if lines:`判断 | 主控Agent的置信度闸门：判断是否继续/转人工 |
+| 成品1调用链                          | RAG Agentic架构                            |
+| ------------------------------------ | ------------------------------------------ |
+| `read_log_lines()`                   | 主控Agent：接收请求，路由分发              |
+| `extract_level()` + `count_levels()` | 专家Agent（统计类）：执行具体任务          |
+| `classify_errors()`                  | 专家Agent（分类类）：执行具体任务          |
+| `generate_report()`                  | 专家Agent（输出类）：生成结果              |
+| `__main__`的`if lines:`判断          | 主控Agent的置信度闸门：判断是否继续/转人工 |
 
 **核心认知**：不管是在代码层面拆函数，还是在系统层面拆Agent，底层都是同一个原则——**拆分职责 > 塞满功能**。
 
 ***
 
-## 七-B、Day 9 笔记：时间范围过滤（08-31）
+## 十二、Day 9 笔记：时间范围过滤（08-31）
 
-**脚本一句话**：`log_analyzer.py` 新增 `--start`/`--end` 参数（YYYY-MM-DD），只统计指定时间段内的日志行——"读文件 → 过滤时间 → 再统计"；不传时间参数时分析全部日志（向后兼容）。
+### 脚本一句话
 
-#### Day 9 新增5个知识点（逐词注释）
+`log_analyzer.py` 新增 `--start`/`--end` 参数（YYYY-MM-DD），只统计指定时间段内的日志行——"读文件 → 过滤时间 → 再统计"；不传时间参数时分析全部日志（向后兼容）。
+
+### Day 9 新增5个知识点（逐词注释）
 
 1. **`datetime.strptime(字符串, '格式')`** — 把时间**字符串**解析成 datetime **对象**（s=string 字符串，p=parse 解析）。日志行用 `'%Y-%m-%d %H:%M:%S'`，参数日期用 `'%Y-%m-%d'`——**格式必须和字符串完全匹配**，格式错或对不上直接抛 `ValueError`
 2. **`.replace(hour=23, minute=59, second=59)`** — 修改 datetime 的时分秒。用途：把 `end` 日期从"当天 00:00:00"改成"当天 23:59:59"，让结束日整天都算进范围（否则 08-02 白天的日志会被漏掉）
-3. **链式比较 `start <= log_time <= end`** — Python 特有的写法，一个表达式同时判断"大于等于start 且 小于等于end"，一眼读懂"在这两者之间"
+3. **链式比较** **`start <= log_time <= end`** — Python 特有的写法，一个表达式同时判断"大于等于start 且 小于等于end"，一眼读懂"在这两者之间"
 4. **字符串和 datetime 不能直接比较** — `'2026-08-01' <= 某个datetime对象` 会报 `TypeError`。**必须先把参数也转成 datetime 对象**，两边都是对象才能比
 5. **坏行跳过（try/except + continue）** — `IndexError`（split 后段数不够拿不到 parts[1]）+ `ValueError`（strptime 格式不匹配）都拦在 except 里，打印警告后 `continue` 跳过该行，程序不崩溃
 
-#### Day 9 新增1个函数（对照）
+### Day 9 新增1个函数（对照）
 
-| 函数名 | 输入 | 输出 | 调用其他函数 |
-|---|---|---|---|
+| 函数名                                              | 输入                             | 输出               | 调用其他函数                                          |
+| --------------------------------------------------- | -------------------------------- | ------------------ | ----------------------------------------------------- |
 | `filter_lines_by_time(lines, start_time, end_time)` | 所有日志行 + 开始/结束日期字符串 | 过滤后的日志行列表 | `line.split()` + `datetime.strptime()` + `.replace()` |
 
 **内部三步走**：①先把 `start_time`/`end_time` 字符串转成 datetime（end 补 23:59:59）→ ②for 循环每行：`split()` → 拼 `parts[0]+' '+parts[1]` → `strptime()` 解析 `log_time`，坏行 except+continue → ③`if start <= log_time <= end:` 在范围内才 `append`
 
-#### Day 9 结构改动（argparse + 主流程）
+### Day 9 结构改动（argparse + 主流程）
 
 1. 新增 `--start` / `--end` 参数登记（放在 `--output` 前），help 注明 `YYYY-MM-DD`
 2. `parse_args()` 后新增**安检**：`if (args.start and not args.end) or (not args.start and args.end): parser.error('必须同时指定 --start 和 --end，或两个都不传')`
@@ -1093,45 +1181,77 @@ docs: .gitignore增加测试产物忽略规则（aa956d6）
 
 **关键设计**：`if args.start and args.end:` 判断必不可少——安检只保证"参数合法"，这个判断保证"没传时间就不过滤、原样走 Day 8 老逻辑"（向后兼容）。
 
-#### Day 9 踩坑记录（按发生顺序）
+### 记忆骨架（Day 9 在 Day 8 基础上新增的部分）
+
+````
+读文件   → lines = read_log_lines(file)                     ← 复用Day8
+                 ↓ 过滤插在"读"与"统计"之间，不污染任何旧函数
+过滤     → start_data = strptime(start, '%Y-%m-%d')          ← 新：字符串→datetime对象
+         → end_data = strptime(end, '%Y-%m-%d').replace(23:59:59) ← 新：结束日覆盖整天
+         → for line: parts = split() → time_str = parts[0]+' '+parts[1]
+                      → strptime(time_str, '%Y-%m-%d %H:%M:%S') → log_time
+                      → except(IndexError, ValueError): 警告+continue
+                      → if start_data <= log_time <= end_data: 保留
+统计     → counter = count_levels(filtered_lines)            ← 复用Day8
+````
+
+**记忆链条**："先拆时间 → 再转对象 → 再比范围"——解析放 try、判断放循环内、坏行 continue 跳过。
+
+### 关键认知纠正
+
+1. **过滤是"插入"不是"修改"**：不改 `count_levels`/`classify_errors`（会污染统计职责），而是新增独立 `filter_lines_by_time()`，插在"读文件"和"统计"之间——与 Day 8 "两条平行分支"同理，新逻辑独立、旧函数不动
+2. **登记必须在 parse_args() 之前**：解析器还没登记 `--start` 就用 `args.start` → AttributeError；`--file`/`--dir`/`--output` 重复登记 → `conflicting option string`，每个选项只登记一次
+3. **字符串和 datetime 不能比**：`'2026-08-01' <= log_time` → TypeError，必须先把参数也 `strptime` 转成对象再比较
+4. **范围判断必须在循环内、独立于 try/except**：写在 for 外只判断最后一行；塞进 except 里坏行也走判断——try/except 只负责解析，判断单独写在解析之后
+5. **主流程必须接上过滤调用**：函数写好了但单文件/批量分支没调用，传 `--start`/`--end` 不生效——"写完函数 → 主流程接入 → 才生效"
+
+### Day 9 创阶段3项增强
+
+| # | 增强 | 说明 |
+|---|------|------|
+| A | **end 补 23:59:59 覆盖整天** | `strptime(end, '%Y-%m-%d').replace(hour=23, minute=59, second=59)`——结束日整天都算进范围，否则 08-02 白天日志被漏 |
+| B | **对比测试验证精确性** | 08-01~08-20（logs 是 08-25 → 空）vs 08-25~08-26（→ 正确统计）——一空一满对照，证明"按日期精确筛选"而非碰巧为空 |
+| C | **安检 + 守卫双保险** | `parser.error`（管参数合法，只传一个报错）+ `if args.start and args.end:`（管行为正确，都没传原样走 Day 8 老逻辑）——两层职责分离 |
+
+### Day 9 最终验证（边界/回归测试全过）
+
+| # | 命令                                                                           | 实际结果                                                                                        |
+| -- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| 1 | `python log_analyzer.py --file sample.log`                                     | ✅ 与 Day 8 完全一致（INFO6/WARNING4/ERROR10，网络5/权限3/服务2）——**向后兼容**                 |
+| 2 | `python log_analyzer.py --file sample.log --start 2026-08-01 --end 2026-08-02` | ✅ sample.log 全部 20 行都是 08-01，在范围内全部保留                                            |
+| 3 | `python log_analyzer.py --file sample.log --start 2026-08-01`                  | ✅ 报错"必须同时指定 --start 和 --end"，usage 正常                                              |
+| 4 | `python log_analyzer.py --dir .\logs --start 2026-08-01 --end 2026-08-20`      | ✅ 空统计（logs 日志都是 08-25，不在范围内，全部过滤）                                          |
+| 5 | `python log_analyzer.py --dir .\logs --start 2026-08-25 --end 2026-08-26`      | ✅ app1（INFO2/WARNING2/ERROR2，网络1/权限1）+ app2（INFO2/WARNING2/ERROR1，服务异常1）数字全对 |
+| 6 | 临时加 bad.log 坏行（无时间戳）再跑测试5                                       | ✅ 打印"警告：时间字段格式错误，已跳过行"，程序不崩溃，正常出报告                               |
+
+> 测试4/5 是**对比验证**：日志日期 08-25，范围 08-01~~08-20 全滤掉（空）、范围 08-25~~08-26 全保留（正确统计），证明过滤是"按日期精确筛选"而非碰巧为空。坏行测试后已删除 bad.log。
+
+### Day 9 踩坑记录（按发生顺序）
 
 1. **`AttributeError: 'Namespace' object has no attribute 'start'`** — 在 `parse_args()` **之后**才 `add_argument('--start')`，解析器还没登记它，`args.start` 不存在。修法：**登记必须在 parse_args() 之前**（先创→登全→再解→后用）
 2. **`conflicting option string: --file`** — `--file`/`--dir`/`--output` 被重复登记两遍，argparse 不允许同名选项登记两次，一启动就崩。修法：删掉重复的 3 行，每个选项只登记一次
-3. **`filtered_lines = []` 顶格缩进** — 掉出函数体变成模块级全局变量，多次调用会累加数据。修法：缩进回函数体 4 格
+3. **`filtered_lines = []`** **顶格缩进** — 掉出函数体变成模块级全局变量，多次调用会累加数据。修法：缩进回函数体 4 格
 4. **比较逻辑写在 for 循环外** — 只有最后一行的 `log_time` 被判断，循环为空/全失败时 `log_time` 未定义直接崩。修法：`if` 判断必须进循环内，每行解析完立刻判断
-5. **`strptime` 用错格式** — 拿 `'%Y-%m-%d %H:%M:%S'` 解析 `'2026-08-01'`（纯日期）→ `ValueError`。修法：参数日期用 `'%Y-%m-%d'`
+5. **`strptime`** **用错格式** — 拿 `'%Y-%m-%d %H:%M:%S'` 解析 `'2026-08-01'`（纯日期）→ `ValueError`。修法：参数日期用 `'%Y-%m-%d'`
 6. **判断用字符串变量** — `if start_time <= log_time <= end_time` 用了原始字符串 `start_time`，而函数开头已转出 `start_data`/`end_data`，字符串和 datetime 比较 → `TypeError`。修法：用转换后的 `start_data`/`end_data`
 7. **try/except 里塞 if 判断** — 把"范围判断"错放进 except 分支，坏行也会走判断，逻辑拧了。修法：**try/except 只负责解析**，解析完跳出，再单独做范围判断
 8. **主流程没调用过滤函数** — 函数写好了但单文件/批量分支没接上，传 `--start`/`--end` 不生效。修法：两分支在统计前加 `if args.start and args.end:` 调用
-9. **`else:` 顶格缩进** — 单文件分支的 `else` 掉了 4 格缩进（语法错误）。修法：对齐 `if args.dir:` 的缩进
+9. **`else:`** **顶格缩进** — 单文件分支的 `else` 掉了 4 格缩进（语法错误）。修法：对齐 `if args.dir:` 的缩进
 
 **思维模式总结**：Day 9 的核心坑不是"时间解析"本身，而是**执行顺序**——参数登记要在解析前、时间转换要在比较前、范围判断要在循环内、过滤调用要在统计前。"先想清楚每一步的数据流，再动手写"比直接敲代码重要。
 
-#### Day 9 最终验证（边界/回归测试全过）
-
-| # | 命令 | 实际结果 |
-|---|---|---|
-| 1 | `python log_analyzer.py --file sample.log` | ✅ 与 Day 8 完全一致（INFO6/WARNING4/ERROR10，网络5/权限3/服务2）——**向后兼容** |
-| 2 | `python log_analyzer.py --file sample.log --start 2026-08-01 --end 2026-08-02` | ✅ sample.log 全部 20 行都是 08-01，在范围内全部保留 |
-| 3 | `python log_analyzer.py --file sample.log --start 2026-08-01` | ✅ 报错"必须同时指定 --start 和 --end"，usage 正常 |
-| 4 | `python log_analyzer.py --dir .\logs --start 2026-08-01 --end 2026-08-20` | ✅ 空统计（logs 日志都是 08-25，不在范围内，全部过滤） |
-| 5 | `python log_analyzer.py --dir .\logs --start 2026-08-25 --end 2026-08-26` | ✅ app1（INFO2/WARNING2/ERROR2，网络1/权限1）+ app2（INFO2/WARNING2/ERROR1，服务异常1）数字全对 |
-| 6 | 临时加 bad.log 坏行（无时间戳）再跑测试5 | ✅ 打印"警告：时间字段格式错误，已跳过行"，程序不崩溃，正常出报告 |
-
-> 测试4/5 是**对比验证**：日志日期 08-25，范围 08-01~08-20 全滤掉（空）、范围 08-25~08-26 全保留（正确统计），证明过滤是"按日期精确筛选"而非碰巧为空。坏行测试后已删除 bad.log。
-
-#### Day 9 收尾四问
+### Day 9 收尾四问
 
 1. **今天产出了什么？** → 新增 `filter_lines_by_time()` 过滤函数（转换边界→逐行解析→范围判断→坏行跳过）；argparse 新增 `--start`/`--end` + 成对安检；单文件/批量两分支在统计前接入过滤；逻辑链完整打通"读→过滤→统计→归类→报告"
 2. **跑通了吗？** → 6条验证全过（回归/保留/安检/对比过滤×2/坏行跳过）；批量模式带时间参数也能正确过滤；不传时间参数输出与 Day 8 完全一致，证明向后兼容无破坏
 3. **卡在哪了？** → ①**参数登记顺序**：parse_args() 之后才登记 `--start` → AttributeError，且重复登记 → conflicting option string；②**比较对象类型**：拿字符串和 datetime 比 → TypeError，必须先转换；③**逻辑位置**：范围判断一度写在 for 外/塞进 except 里，主流程也忘了调用过滤函数
-4. **到布卢姆第几层了？** → 应用层（`--start`/`--end` + `filter_lines_by_time()` 独立完成）✅；分析层（看懂"字符串→datetime→链式比较"数据流，判断"传了才过滤"保证向后兼容）✅；评价层（对比测试 08-01~08-20 vs 08-25~08-26 证明过滤精确性，不只满足于"能跑"）✅；创造层（end 补 23:59:59 解决跨天边界，避免结束日白天日志被漏）✅
+4. **到布卢姆第几层了？** → 应用层（`--start`/`--end` + `filter_lines_by_time()` 独立完成）✅；分析层（看懂"字符串→datetime→链式比较"数据流，判断"传了才过滤"保证向后兼容）✅；评价层（对比测试 08-01~~08-20 vs 08-25~~08-26 证明过滤精确性，不只满足于"能跑"）✅；创造层（end 补 23:59:59 解决跨天边界，避免结束日白天日志被漏）✅
 
-#### 一句话说清今天最重要的概念
+### 一句话说清今天最重要的概念
 
 > 时间范围过滤 = **"先拆时间 → 再转对象 → 再比范围"**：`split()` 从整行抠出时间字符串，`strptime()` 变成 datetime 对象（end 补 23:59:59 覆盖整天），链式比较 `start <= log_time <= end` 决定去留，坏行 except+continue 跳过；而"不传时间参数就原样分析"靠 `if args.start and args.end:` 的守卫实现向后兼容——**过滤是插入"读"和"统计"之间的独立一步，不污染任何旧函数**。
 
-#### Git 提交
+### Git 提交
 
 ````
 Day 9: 时间范围过滤（f552739）
@@ -1139,73 +1259,108 @@ Day 9: 时间范围过滤（f552739）
 
 ***
 
-## 七-C、Day 10 笔记：HTML格式报告输出（09-02）
+## 十三、Day 10 笔记：HTML格式报告输出（09-02）
 
-**脚本一句话**：`log_analyzer.py` 新增 `--format` 参数（txt/html），支持 HTML 格式报告输出——"数据层（dict）→ 格式层（html writer）"；不传 `--format` 时默认 txt（向后兼容）。
+### 脚本一句话
 
-#### Day 10 新增5个知识点（逐词注释）
+`log_analyzer.py` 新增 `--format` 参数（txt/html），支持 HTML 格式报告输出——"数据层（dict）→ 格式层（html writer）"；不传 `--format` 时默认 txt（向后兼容）。
+
+### Day 10 新增5个知识点（逐词注释）
 
 1. **HTML 文档三件套结构** — `<html>` 包 `<head>` + `<body>`；`<head>` 里放 `<title>`（浏览器标签页标题）和 `<meta charset="UTF-8">`（**防中文乱码关键**，txt 靠 `open(encoding='utf-8')` 控制编码，HTML 必须靠 meta 标签告诉浏览器编码）
 2. **表格嵌套层级** — `<table>` → `<tr>`（行）→ `<td>`（单元格），从大到小像 Excel：表包行、行包格
 3. **多行 f-string / 字符串列表拼接** — 用 `"""` 或列表 `append()` 一行一个元素，最后 `"\n".join(lines)` 一次写入，比一行挤到底可读性好
-4. **`html.escape()` 防 XSS** — 浏览器只按 HTML 规则解析、**不会**自动转义用户输入；`<` → `&lt;`、`>` → `&gt;`。动态内容（文件路径/分类名/级别名）必须转义，自己写的标签不用
-5. **`argparse` `choices` + `default`** — `choices=['txt','html']` 让 argparse 自动拒绝非法值（`--format bad` → 自动报错，不用自己写 if）；`default='txt'` 保证不传时走老路
+4. **`html.escape()`** **防 XSS** — 浏览器只按 HTML 规则解析、**不会**自动转义用户输入；`<` → `&lt;`、`>` → `&gt;`。动态内容（文件路径/分类名/级别名）必须转义，自己写的标签不用
+5. **`argparse`** **** **`choices`** **+** **`default`** — `choices=['txt','html']` 让 argparse 自动拒绝非法值（`--format bad` → 自动报错，不用自己写 if）；`default='txt'` 保证不传时走老路
 
-#### Day 10 新增4个函数（对照）
+### Day 10 新增4个函数（对照）
 
-| 函数名 | 职责层 | 输入 | 输出 |
-|---|---|---|---|
-| `build_report_content(...)` | **数据层**（单文件） | counter/error_counter/file_path/total_lines | 纯 dict（type/file_path/total_lines/counter/error_counter/generated_at） |
-| `build_batch_report_content(...)` | **数据层**（批量） | batch_results 元组列表 | 纯 dict（type/files/total_counter/total_error/generated_at） |
-| `_render_stats_table(title, items)` | 格式层助手（私有，下划线开头） | 表头名 + 统计字典 | 完整 `<table>` HTML 字符串 |
-| `write_html_report(content, output_path)` | **格式层** | 数据 dict + 输出路径 | 按 type 分流 single/batch 渲染 HTML 并写文件 |
+| 函数名                                    | 职责层                         | 输入                                        | 输出                                                                     |
+| ----------------------------------------- | ------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------ |
+| `build_report_content(...)`               | **数据层**（单文件）           | counter/error_counter/file_path/total_lines | 纯 dict（type/file_path/total_lines/counter/error_counter/generated_at） |
+| `build_batch_report_content(...)`         | **数据层**（批量）             | batch_results 元组列表                      | 纯 dict（type/files/total_counter/total_error/generated_at）             |
+| `_render_stats_table(title, items)`       | 格式层助手（私有，下划线开头） | 表头名 + 统计字典                           | 完整 `<table>` HTML 字符串                                               |
+| `write_html_report(content, output_path)` | **格式层**                     | 数据 dict + 输出路径                        | 按 type 分流 single/batch 渲染 HTML 并写文件                             |
 
 **三层职责链**（Day 10 最重要架构）：
-```
+
+````
 读→过滤→统计→归类 → 数据层build_*_content() → 纯dict → 格式层writer → 文件
                                               txt → generate_report()（Day 9老函数，不动）
                                               html → write_html_report()（新）
-```
+````
+
 **核心原则**：build 函数只产数据（dict）、不含格式、不写文件；写文件是 writer 的事。以后加 PDF/Excel 只需新增 writer，不动数据层。
 
-#### Day 10 结构改动（argparse + 主入口）
+### Day 10 结构改动（argparse + 主入口）
 
 1. 新增 `--format` 参数：`parser.add_argument('--format', choices=['txt','html'], default='txt', ...)`（登记在 `--output` 前）
 2. 批量分支末尾：`if args.format=='html': content = build_batch_report_content(batch_results); write_html_report(content, args.output)`，else 走 `generate_batch_report` 老路
 3. 单文件分支末尾：同样 `if args.format=='html'` 分流到新函数，else 走 `generate_report` 老路
 
-#### Day 10 踩坑记录（按发生顺序）
+### 记忆骨架（Day 10 在 Day 9 基础上新增的部分）
+
+````
+读→过滤→统计→归类              ← 复用Day 9 整条调用链，全不动
+                 ↓ 报告环节换成"数据层→格式层"两步
+数据层    → content = build_report_content(...)          ← 新：只返回纯dict
+         → content = build_batch_report_content(...)    ← 新：批量同
+格式层    → write_html_report(content, output_path)      ← 新：dict → HTML → 写文件
+         → generate_report(...)（txt老函数）             ← 复用Day9，零改动
+分流      → if args.format == 'html': 新链路
+         → else: 走Day9老链路（向后兼容靠 default='txt'）
+````
+
+**记忆链条**："数据与格式分离"——build 只产 dict（数据），writer 只画格式（HTML/txt），主入口用 `--format` 选路。
+
+### 关键认知纠正
+
+1. **build 函数只产数据、不写文件**：`build_report_content()` 名字是"构建内容"就该 `return` dict；第一版把 `f.write(HTML)` 塞进去 = "数据+格式+写文件"三合一职责错位
+2. **只产数据的函数不需要输出路径**：签名带 `output_path` 说明两层又合并了——写文件是 writer 的职责
+3. **批量数据必须先解包元组**：`build_batch_report_content(batch_results)` 里直接写 `file_path`/`counter` 引用不存在的变量（批量数据是元组列表），必须先 `for file_path, counter, error_counter, total_lines in batch_results:`
+4. **主入口不要引用不存在的变量/函数**：`html_write`/`generate_html_report` 从没定义会崩；`choices=['txt','html']` 自己会拒绝非法值（`--format bad` 自动报错），不需要手写 if
+5. **测试产物必须加 .gitignore**：`.html` 报告会误提交，要加 `report_*.html` 规则
+
+### Day 10 创阶段增强
+
+| # | 增强 | 说明 |
+|---|------|------|
+| A | **数据/格式分离架构** | `build_*_report_content()` 只产纯 dict（数据层），`write_html_report()` 专门渲染 HTML（格式层）——以后加 PDF/Excel 只需新增 writer，不动数据层 |
+| B | **`_render_stats_table()` 私有助手复用** | 单文件/批量每文件/总计段三处共用一个表格渲染函数，消灭重复代码（下划线开头=模块内部私有函数） |
+| C | **`choices`+`default` 参数安检** | `--format` 用 `choices=['txt','html']` 让 argparse 自动拒绝非法值，`default='txt'` 保证不传时走老路——安检交给 argparse，不手写 if |
+
+### Day 10 最终验证（边界/回归测试全过）
+
+| # | 命令                                                     | 实际结果                                                                                        |
+| -- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 1 | `python log_analyzer.py --file sample.log`               | ✅ 与 Day 9 完全一致（INFO6/WARNING4/ERROR10，网络5/权限3/服务2）→ `report_*.txt`，**向后兼容** |
+| 2 | `python log_analyzer.py --file sample.log --format html` | ✅ 生成 `report_*.html`，浏览器打开中文正常、表格有边框、数字对                                 |
+| 3 | `python log_analyzer.py --dir .\logs --format html`      | ✅ 生成 `report_batch_*.html`，app1+app2 每个文件一段 + 所有文件总计                            |
+| 4 | `python log_analyzer.py --file sample.log --format bad`  | ✅ argparse 自动报错 `invalid choice: 'bad' (choose from txt, html)`，choices 安检生效          |
+| 5 | 浏览器打开测试2/3 产物                                   | ✅ 中文无乱码、表格正常、批量含"所有文件总计"                                                   |
+
+### Day 10 踩坑记录（按发生顺序）
 
 1. **职责错位：build 函数直接写 HTML 文件** — 第一版把 `f.write(HTML)` 全塞进 `build_report_content()`，等于"数据+格式+写文件"三合一。修法：build 只 `return` 纯 dict，HTML 渲染挪到独立 `write_html_report()`
-2. **build 签名多带 `output_path`** — 既然 build 只产数据就不该有输出路径，带了这个参数说明两层又被合并了。修法：删掉该参数，写文件交给 writer
+2. **build 签名多带** **`output_path`** — 既然 build 只产数据就不该有输出路径，带了这个参数说明两层又被合并了。修法：删掉该参数，写文件交给 writer
 3. **批量函数引用不存在的变量** — `build_batch_report_content` 里用了 `file_path`/`counter`/`total_lines`，但批量数据是 `batch_results` 元组列表，必须先 `for file_path, counter, error_counter, total_lines in batch_results:` 解包。修法：外层 for 先解包再取字段
 4. **主入口引用不存在的变量/函数** — `html_write`（从没定义）、`generate_html_report`（函数不存在）、`else: parser.error('未指定--output...')`（txt 不传 --output 是合法行为不该报错）。修法：用 `args.format` + `if/else` 分流，choices 自己会拒绝非法值
 5. **gitignore 漏了 html 报告** — `.html` 测试产物未忽略会误提交。修法：.gitignore 增加 `product1-log-analyzer/report_*.html` 规则
 
 **思维模式总结**：Day 10 的核心不是"HTML 标签怎么写"，而是**职责分层**——数据层（dict）与格式层（writer）分离、加新格式只加 writer 不动数据、向后兼容靠 `default` 和 if/else 老路。写函数前先问自己："这个函数该不该管写文件？该不该知道输出路径？"——答案来自它的名字和职责。
 
-#### Day 10 最终验证（边界/回归测试全过）
-
-| # | 命令 | 实际结果 |
-|---|---|---|
-| 1 | `python log_analyzer.py --file sample.log` | ✅ 与 Day 9 完全一致（INFO6/WARNING4/ERROR10，网络5/权限3/服务2）→ `report_*.txt`，**向后兼容** |
-| 2 | `python log_analyzer.py --file sample.log --format html` | ✅ 生成 `report_*.html`，浏览器打开中文正常、表格有边框、数字对 |
-| 3 | `python log_analyzer.py --dir .\logs --format html` | ✅ 生成 `report_batch_*.html`，app1+app2 每个文件一段 + 所有文件总计 |
-| 4 | `python log_analyzer.py --file sample.log --format bad` | ✅ argparse 自动报错 `invalid choice: 'bad' (choose from txt, html)`，choices 安检生效 |
-| 5 | 浏览器打开测试2/3 产物 | ✅ 中文无乱码、表格正常、批量含"所有文件总计" |
-
-#### Day 10 收尾四问
+### Day 10 收尾四问
 
 1. **今天产出了什么？** → 数据层 2 函数（`build_report_content`/`build_batch_report_content`，只返 dict）+ 格式层 2 函数（`_render_stats_table`/`write_html_report`）+ argparse `--format`（choices+default）；txt 旧函数（`generate_report`/`generate_batch_report`）零改动
 2. **跑通了吗？** → 5 条验证全过：txt 回归一致 / html 单文件 / html 批量 / choices 拒绝非法值 / 浏览器中文表格正常
 3. **卡在哪了？** → ① 第一版把 HTML 写死在 build 函数里（职责错位，build 应只返 dict）② 批量函数误用不存在的 `file_path`/`counter`（未先解包元组）③ 主入口引用不存在的 `html_write`/`generate_html_report` 变量；④ .gitignore 漏 html 报告规则
 4. **到布卢姆第几层了？** → 应用层（`--format` + 4 函数独立完成）✅；分析层（看懂"数据层 dict → 格式层 writer"分离，判断 default 保证向后兼容）✅；评价层（评价 A 方案塞 if 职责错位 vs B 方案分层正确，能推断加 PDF 的方向）✅；创造层（`_render_stats_table` 私有助手函数复用——单文件/批量/总计三处共用，消灭重复代码）✅
 
-#### 一句话说清今天最重要的概念
+### 一句话说清今天最重要的概念
 
 > HTML 报告输出 = **"数据与格式分离"**：`build_*_report_content()` 只把统计结果整理成**纯 dict**（数据层），`write_html_report()` 专门把 dict 渲染成 HTML 写文件（格式层），txt 老函数原样保留。主入口用 `--format`（`choices=['txt','html']`、`default='txt'`）选择走哪条路——加新格式只加 writer 不动数据，向后兼容靠 default。
 
-#### Git 提交
+### Git 提交
 
 ````
 Day 10: HTML格式报告输出（ae796d2）
@@ -1213,8 +1368,9 @@ Day 10: HTML格式报告输出（ae796d2）
 
 ***
 
-## 七、安全红线
+## 安全红线（附则）
 
 - 上传GitHub/Dify前必须脱敏：无真实IP、主机名、内网信息
 - .gitignore 必含：`.env` / `config.json` / `**/__pycache__` / `reports/`
 - push前 `git status` + `git ls-files` 检查敏感文件
+
