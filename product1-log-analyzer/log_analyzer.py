@@ -1,11 +1,10 @@
-# 运维日志分析脚本 Day10 HTML格式报告
+# 运维日志分析脚本 Day11 错误模式检测
 
 import re  #正则表达式模块
 import argparse #命令行参数解析模块
 import os #操作系统模块
 import glob #文件匹配模块
 from datetime import datetime   #时间模块
-import html #HTML转义模块
 
 
 CATEGORIES = {
@@ -13,6 +12,8 @@ CATEGORIES = {
     '权限错误': ['denied', 'permission', 'Authentication'],
     '服务异常': ['service', 'nginx', 'MySQL', 'Redis'],
 }
+
+FREQUENT_THRESHOLD = 3  # 高频错误阈值，同一错误出现>=3次认为是高频
 
 def classify_error(line): # 定义错误分类函数
     for category, keywords in CATEGORIES.items(): # 遍历每个错误类别
@@ -119,9 +120,50 @@ def classify_errors(lines):
         print(f"{category}: {count}个") # 打印每个类别的出现次数    
     return error_counter   # 返回每个错误类别出现次数的字典
 
+def find_frequent_errors(lines, threshold=3):
+    """找出高频错误（同一错误信息出现次数>=阈值）
+       lines: 所有日志行(必填)
+       threshold: 高频判定阈值(可选，默认3)
+       返回: 高频错误列表，每个元素是 (错误指纹, 次数, 首次时间, 末次时间)
+    """
+    # ① 创建空字典，存每个错误指纹的统计信息
+    #    结构：{错误指纹: [次数, 首次时间, 末次时间]}
+    error_stats = {}
+    
+    # ② 遍历所有日志行
+    for line in lines:
+        # ②.1 提取日志级别，只处理 ERROR 行
+        level = extract_level(line)
+        if level != 'ERROR':
+            continue  # 不是 ERROR 就跳过
+        
+        # ②.2 提取时间字符串和错误指纹
+        parts = line.split()
+        time_str = parts[0] + ' ' + parts[1]  # 时间字符串
+        error_fingerprint = ' '.join(parts[2:])  # 错误指纹
+        
+        # ②.3 更新字典
+        if error_fingerprint in error_stats:
+            # 再次遇到：次数+1，末次时间更新
+            error_stats[error_fingerprint][0] += 1
+            error_stats[error_fingerprint][2] = time_str
+        else:
+            # 首次遇到：创建条目 [1, 时间, 时间]
+            error_stats[error_fingerprint] = [1, time_str, time_str]
+    
+    # ③ 筛选高频错误：遍历字典，挑出 次数 >= threshold 的条目
+    frequent_list = []
+    for fingerprint, stats in error_stats.items():
+        if stats[0] >= threshold:
+            # 转成元组 (错误指纹, 次数, 首次时间, 末次时间)
+            frequent_list.append((fingerprint, stats[0], stats[1], stats[2]))
+    
+    # ④ 返回筛选结果
+    return frequent_list
+
 def generate_batch_report(batch_results, output_path):
-    """生成批量分析汇总报告：每个文件一段（txt格式层，Day 9保留不动）
-       batch_results: 列表，每个元素是 (文件路径, counter, error_counter, 总行数)
+    """生成批量分析汇总报告：每个文件一段
+       batch_results: 列表，每个元素是 (文件路径, counter, error_counter, 总行数, 高频错误列表)
     """
     now = datetime.now()
     if output_path is None:  # 没传 --output → 用默认日期文件名
@@ -141,7 +183,7 @@ def generate_batch_report(batch_results, output_path):
         total_error = {}     # 循环开始前：所有文件累计的错误分类
 
         # ↓ 外层for：解包元组，回忆 enumerate 
-        for file_path, counter, error_counter, total_lines in batch_results:
+        for file_path, counter, error_counter, total_lines, frequent_errors in batch_results:
             f.write(f"-------- 文件：{file_path}（共{total_lines}行）--------\n")
             
             # ↓ 内层两个for写级别统计、错误分类
@@ -158,19 +200,30 @@ def generate_batch_report(batch_results, output_path):
             f.write(f"=============错误分类统计：============\n")
             for category, count in error_counter.items():
                 f.write(f"{category}: {count}个\n")
-           
+
+            if frequent_errors: # 如果有频繁错误
+                f.write(f"=============高频错误清单：============\n")
+                f.write(f"出现次数超过{FREQUENT_THRESHOLD}次的错误：\n")
+                for fingerprint, count, first_time, last_time in frequent_errors:
+                    f.write(f"  {fingerprint}: {count}次，首次：{first_time}，末次：{last_time}\n")
+            else: # 如果没有频繁错误
+                f.write(f"=============高频错误清单：============\n")
+                f.write(f"没有出现次数超过{FREQUENT_THRESHOLD}次的错误\n")
+            f.write(f"\n")
+
         f.write(f"=============所有文件总计：============\n")
         f.write(f"总行数：{sum(total_counter.values()) }行\n")
         f.write(f"错误总计：{sum(total_error.values())}个\n")
         f.write(f"============================\n")
     print(f"✅ 汇总报告已生成：{report_file}")    
 
-def generate_report(counter, error_counter, file_path, total_lines, output_path):
-    """生成日志分析报告,包含级别统计和错误分类统计（txt格式层，Day 9保留不动）
+def generate_report(counter, error_counter, file_path, total_lines, frequent_errors, output_path):
+    """生成日志分析报告,包含级别统计和错误分类统计
        counter: 级别统计字典(必填)
        error_counter: 错误分类字典(必填)
        file_path: 日志文件路径(必填)
        total_lines: 总行数(必填)
+       frequent_errors: 高频错误列表(必填)
        output_path: 输出文件路径(可选)
     """
 
@@ -189,146 +242,35 @@ def generate_report(counter, error_counter, file_path, total_lines, output_path)
         f.write(f"日志文件：{file_path}\n")
         f.write(f"总行数：{total_lines}\n")
         f.write(f"\n")
-        
+
+        # ===== 高频错误清单 =====
+        if frequent_errors:  # 如果有高频错误
+            f.write(f"=============高频错误清单：============\n")
+            f.write(f"出现次数超过{FREQUENT_THRESHOLD}次的错误：\n")
+            for fingerprint, count, first_time, last_time in frequent_errors:
+                f.write(f"  {fingerprint}: {count}次，首次：{first_time}，末次：{last_time}\n")
+            f.write(f"\n")
+        else:  # 没有高频错误
+            f.write(f"=============高频错误清单：============\n")
+            f.write(f"没有出现次数超过{FREQUENT_THRESHOLD}次的错误\n\n")
+
+        # ===== 级别统计 =====
         f.write(f"=============级别统计：============\n")
         for level, count in counter.items():
             f.write(f"{level}: {count}次\n")
         f.write(f"\n")
-       
+
+        # ===== 错误分类统计 =====
         f.write(f"=============错误分类统计：============\n")
         for category, count in error_counter.items():
             f.write(f"{category}: {count}个\n")
         f.write(f"============================\n")
     print(f"✅ 报告已生成：{report_file}") # 写完后告诉用户文件在哪
 
-def build_report_content(counter, error_counter, file_path, total_lines):
-    """数据层：构建单文件报告数据（纯dict，不含任何格式）
-       counter: 级别统计字典(必填)
-       error_counter: 错误分类字典(必填)
-       file_path: 日志文件路径(必填)
-       total_lines: 总行数(必填)
-       返回: 单文件报告数据字典
-    """
-    return {
-        'type': 'single',
-        'file_path': file_path,
-        'total_lines': total_lines,
-        'counter': counter,
-        'error_counter': error_counter,
-        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-    }
-
-def build_batch_report_content(batch_results):
-    """数据层：构建批量报告数据（纯dict，不含任何格式）
-       batch_results: 列表，每个元素是 (文件路径, counter, error_counter, 总行数)
-       返回: 批量报告数据字典
-    """
-    total_counter = {}  # 循环开始前：所有文件累计的级别统计
-    total_error = {}    # 循环开始前：所有文件累计的错误分类
-    files = []          # 每个文件的详细数据
-
-    for file_path, counter, error_counter, total_lines in batch_results:
-        files.append({
-            'file_path': file_path,
-            'total_lines': total_lines,
-            'counter': counter,
-            'error_counter': error_counter,
-        })
-        for level, count in counter.items():
-            total_counter[level] = total_counter.get(level, 0) + count  # 累计所有文件的级别统计
-        for category, count in error_counter.items():
-            total_error[category] = total_error.get(category, 0) + count  # 累计所有文件的错误分类
-
-    return {
-        'type': 'batch',
-        'files': files,
-        'total_counter': total_counter,
-        'total_error': total_error,
-        'generated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-    }
-
-def _render_stats_table(title, items):
-    """把统计字典渲染成完整HTML表格（下划线开头=模块内部私有函数）
-       title: 表头第一列名称（如'级别'/'错误类别'）
-       items: 统计字典，键→数量
-       返回: 完整<table>HTML字符串
-    """
-    table = f"<table><tr><th>{title}</th><th>数量</th></tr>\n"
-    for name, count in items.items():
-        # html.escape转义动态内容，防XSS和乱码
-        table += f"<tr><td>{html.escape(str(name))}</td><td>{count}</td></tr>\n"
-    table += "</table>"
-    return table
-
-def write_html_report(content, output_path):
-    """格式层：把报告数据dict渲染成HTML并写入文件
-       content: build_*_report_content 返回的数据字典(必填)
-       output_path: 输出文件路径(可选，不传则用默认日期文件名)
-    """
-    now = datetime.now()
-    if content['type'] == 'batch':  # 批量报告默认文件名带batch
-        default_name = f"report_batch_{now.strftime('%Y%m%d%H%M%S')}.html"
-    else:
-        default_name = f"report_{now.strftime('%Y%m%d%H%M%S')}.html"
-
-    if output_path is None:  # 没传 --output → 用默认日期文件名
-        report_file = default_name
-        print(f"\n未指定 --output，使用默认文件名：{report_file}") # 打印默认文件名
-    else:  # 传了 --output → 用用户指定的文件名
-        report_file = output_path
-        print(f"\n使用用户指定的文件名：{report_file}") # 打印用户指定的文件名
-
-    # ---- 组装HTML（每行一个元素，最后一次性写入）----
-    lines = []
-    lines.append("<!DOCTYPE html>")
-    lines.append("<html lang='zh-CN'>")
-    lines.append("<head>")
-    lines.append("    <meta charset='UTF-8'>")  # 防中文乱码关键
-    lines.append("    <title>运维日志分析报告</title>")
-    lines.append("    <style>")
-    lines.append("        body { font-family: Arial, sans-serif; margin: 20px; }")
-    lines.append("        h1 { color: #2c3e50; }")
-    lines.append("        table { border-collapse: collapse; margin: 10px 0; }")
-    lines.append("        td, th { border: 1px solid #ccc; padding: 5px 12px; }")
-    lines.append("        th { background: #f2f2f2; }")
-    lines.append("        .file { margin-top: 20px; font-weight: bold; }")
-    lines.append("    </style>")
-    lines.append("</head>")
-    lines.append("<body>")
-    lines.append("    <h1>运维日志分析报告</h1>")
-    lines.append(f"    <p>分析时间：{content['generated_at']}</p>")
-
-    if content['type'] == 'single':  # ===== 单文件报告 =====
-        lines.append(f"    <p>日志文件：{html.escape(content['file_path'])}</p>")
-        lines.append(f"    <p>总行数：{content['total_lines']}</p>")
-        lines.append("    <h2>级别统计</h2>")
-        lines.append(_render_stats_table('级别', content['counter']))
-        lines.append("    <h2>错误分类统计</h2>")
-        lines.append(_render_stats_table('错误类别', content['error_counter']))
-
-    else:  # ===== 批量报告 =====
-        lines.append(f"    <p>文件数量：{len(content['files'])}个</p>")
-        for file in content['files']:  # 每个文件一段
-            lines.append(f"    <p class='file'>文件：{html.escape(file['file_path'])}（共{file['total_lines']}行）</p>")
-            lines.append(_render_stats_table('级别', file['counter']))
-            lines.append(_render_stats_table('错误类别', file['error_counter']))
-        lines.append("    <h2>所有文件总计</h2>")
-        lines.append(_render_stats_table('级别', content['total_counter']))
-        lines.append(_render_stats_table('错误类别', content['total_error']))
-
-    lines.append("</body>")
-    lines.append("</html>")
-
-    with open(report_file, 'w', encoding='utf-8') as f:
-        f.write("\n".join(lines))
-
-    print(f"✅ HTML报告已生成：{report_file}") # 写完后告诉用户文件在哪
-
 if __name__ == '__main__':  # 主函数入口
     parser = argparse.ArgumentParser(description='运维日志分析工具：分析日志文件，统计级别与错误分类，生成结构化报告',
         epilog='示例：\n'
                '  python log_analyzer.py --file sample.log\n'
-               '  python log_analyzer.py --file sample.log --format html\n'
                '  python log_analyzer.py --file sample.log --output my_report.txt\n'
                '  python log_analyzer.py --dir ./logs/',
         formatter_class=argparse.RawDescriptionHelpFormatter)  # 1.创建解析器
@@ -336,8 +278,7 @@ if __name__ == '__main__':  # 主函数入口
     parser.add_argument('--dir', help='日志文件所在目录路径（可选）')  # 3.登记--dir
     parser.add_argument('--start', help='开始日期(YYYY-MM-DD, 格式：2023-01-01)') # 4登记--start
     parser.add_argument('--end', help='结束日期(YYYY-MM-DD, 格式：2023-01-01)') # 5登记--end
-    parser.add_argument('--format', choices=['txt', 'html'], default='txt', help='输出格式：txt或html（默认txt，向后兼容）') # 6登记--format
-    parser.add_argument('--output', help='输出报告文件路径（可选，不传则用默认文件名）') # 7登记--output
+    parser.add_argument('--output', help='输出报告文件路径（可选，不传则用默认文件名）') # 6登记--output
     args = parser.parse_args()
 
     if (args.start and not args.end) or (not args.start and args.end): # 有开始日期但没有结束日期的，或者没有开始日期，但是有结束日期的
@@ -357,14 +298,11 @@ if __name__ == '__main__':  # 主函数入口
                 if lines:  # 单个文件读不到就跳过，不中断批量（Done标准伏笔）
                     if args.start and args.end:              # 传了时间参数才过滤
                         lines = filter_lines_by_time(lines, args.start, args.end)
-                    counter = count_levels(lines)
                     error_counter = classify_errors(lines)
-                    batch_results.append((log_file, counter, error_counter, len(lines)))
-            if args.format == 'html':  # HTML格式 → 数据层+html格式层
-                content = build_batch_report_content(batch_results)  # ①数据层：dict
-                write_html_report(content, args.output)              # ②格式层：dict→html→文件
-            else:  # 默认txt → 走Day 9老函数（向后兼容）
-                generate_batch_report(batch_results, args.output)
+                    counter = count_levels(lines)
+                    frequent_errors = find_frequent_errors(lines)
+                    batch_results.append((log_file, counter, error_counter, len(lines), frequent_errors))
+            generate_batch_report(batch_results, args.output)
 
     else:  # ===== 单文件分支 =====
         lines = read_log_lines(args.file)
@@ -373,8 +311,5 @@ if __name__ == '__main__':  # 主函数入口
                 lines = filter_lines_by_time(lines, args.start, args.end)
             counter = count_levels(lines)
             error_counter = classify_errors(lines)
-            if args.format == 'html':  # HTML格式 → 数据层+html格式层
-                content = build_report_content(counter, error_counter, args.file, len(lines))  # ①数据层：dict
-                write_html_report(content, args.output)                                       # ②格式层：dict→html→文件
-            else:  # 默认txt → 走Day 9老函数（向后兼容）
-                generate_report(counter, error_counter, args.file, len(lines), args.output)
+            frequent_errors = find_frequent_errors(lines)
+            generate_report(counter, error_counter, args.file, len(lines), frequent_errors, args.output) 
