@@ -9,17 +9,16 @@ __pycache__/
 .venv/
 venv/
 
-# 报告输出
-product1-log-analyzer/reports/
-product1-log-analyzer/report_*.txt
-product1-log-analyzer/*report*.txt
-product1-log-analyzer/report_*.html
-product1-log-analyzer/*report*.html
-product1-log-analyzer/batch_test.txt
-product1-log-analyzer/batch_summary.txt
-product1-log-analyzer/single_output.txt
-product1-log-analyzer/emptydir/
-product3-inspection-tool/reports/
+# 报告输出（本地生成，不需要传；不限定目录，任意位置生成的报告都忽略）
+report_*.txt
+*report*.txt
+report_*.html
+*report*.html
+batch_test.txt
+batch_summary.txt
+single_output.txt
+reports/
+emptydir/
 
 # OS文件
 .DS_Store
